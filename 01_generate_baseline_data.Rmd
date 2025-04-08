@@ -1,0 +1,500 @@
+---
+title: "07_generate_baseline_data_2024"
+author: "Sarah Willington"
+date: "08-04-2024"
+output: html_document
+---
+
+## info
+markdown file to generate all the baseline data (no change in Linf)
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r load libraries and data, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(here)
+
+project_dir <- here::here()
+raw_data <- file.path(paste(project_dir, "0_data", "Prince_2023_MK_precise.csv", sep = "/"))
+mk <- read_csv(raw_data) #read in raw data
+
+```
+
+
+## alfonsino baseline
+
+```{r alfonsino - Beryx splendens }
+
+mk_alfonsino <- mk %>% filter(species == "Beryx splendens")
+summary(mk_alfonsino)
+
+```
+
+median m/k is 1.3429\
+when m/k = 1.3429:\
+Linf = 485.2\
+k = 0.220\
+t0 = -0.095\
+m = 0.2954353\
+max.age = 15.0\
+LWa and LWb are NA\
+
+
+```{r alfonsino baseline scenarios}
+# Create the baseline data
+baseline <- data.frame(
+  species = "alfonsino",
+  Linf = 485.2,
+  K = 0.22,
+  M = 0.2954353,
+  t0 = -0.095,
+  tmax = 15,
+  scenario = "baseline"
+)
+
+# Create vectors of decreasing and increasing values for K and M (20% change steps)
+decreasing_values <- c(0.8, 0.6, 0.4)
+increasing_values <- c(1.2, 1.4, 1.6)
+
+# Function to modify data
+modify_data <- function(baseline, K_factor, M_factor) {
+  return(baseline %>%
+           mutate(
+             K = K * K_factor,
+             M = M * M_factor,
+             scenario = "experimental"
+           ))
+} #close modify function
+
+# Create an empty data frame to store the results
+result_data <- data.frame()
+
+# nested loops to loop through each combination of changing M and K ####
+
+  # Loop through each value of K and M
+  for (K_factor in decreasing_values) {
+    for (M_factor in increasing_values) {
+      modified_data <- modify_data(baseline, K_factor, M_factor)
+      result_data <- rbind(result_data, modified_data)
+    }
+  }
+  # Loop through each value of K and M in reverse order
+  for (K_factor in increasing_values) {
+    for (M_factor in decreasing_values) {
+      modified_data <- modify_data(baseline, K_factor, M_factor)
+      result_data <- rbind(result_data, modified_data)
+    }
+  }
+  # Loop through each value of K and M increasing
+  for (K_factor1 in increasing_values) {
+    for (M_factor1 in increasing_values) {
+      modified_data <- modify_data(baseline,  K_factor1, M_factor1)
+      result_data <- rbind(result_data, modified_data)
+    }
+  }
+  # Loop through each value of K and M decreasing
+  for (K_factor2 in decreasing_values) {
+    for (M_factor2 in decreasing_values) {
+      modified_data <- modify_data(baseline,  K_factor2, M_factor2)
+      result_data <- rbind(result_data, modified_data)
+    }
+  } #end loop
+
+# Reset row names in the result_data
+row.names(result_data) <- NULL
+
+# Bind with baseline
+result_data <- rbind(result_data, baseline)
+
+```
+
+
+```{r alfonsino baseline write csv}
+result_data <- result_data %>%  
+  mutate(M = round(M, 3))
+
+project_dir <- here::here()
+al_baseline_path <- file.path(paste(project_dir, "03_results", "output1", "01_baseline_scenarios_alfonsino.csv", sep = "/"))
+write_csv(result_data, al_baseline_path)
+```
+
+
+```{r alfonsino baseline increasing K scenarios}
+
+rm(list=ls()) # clear workspace
+
+# Create the baseline data
+baseline <- data.frame(
+  species = "alfonsino",
+  Linf = 485.2,
+  K = 0.22,
+  M = 0.2954353,
+  t0 = -0.095,
+  tmax = 15,
+  scenario = "baseline"
+)
+
+# vector of increasing K
+increasing_values <- seq(1.01, 2, by=0.05)
+
+# Function to modify data
+modify_data <- function(baseline, K_factor) {
+  return(baseline %>%
+           mutate(
+             K = K * K_factor,
+             scenario = "experimental"
+           ))
+} #close modify function
+
+# Create an empty data frame to store the results
+result_data <- data.frame()
+
+# nested loops to loop through each decrease in Linf and each combination of changing K ####
+
+  # Loop through each value of K 
+for (K_factor in increasing_values) {
+      modified_data <- modify_data(baseline, K_factor)
+      result_data <- rbind(result_data, modified_data)
+ }#end loop
+
+# Reset row names in the result_data
+row.names(result_data) <- NULL
+
+# Bind with baseline
+result_data <- rbind(result_data, baseline)
+
+```
+
+
+```{r alfonsino baseline increasing K write csv}
+result_data <- result_data %>%  
+  mutate(M = round(M, 3))
+
+project_dir <- here::here()
+al_baselinek_path <- file.path(paste(project_dir, "03_results", "output1", "02_baselinek_scenarios_alfonsino.csv", sep = "/"))
+write_csv(result_data, al_baselinek_path)
+```
+
+
+
+## swordfish baseline
+
+```{r swordfish - Xiphias gladius }
+rm(list=ls()) # clear workspace
+
+project_dir <- here::here()
+raw_data <- file.path(paste(project_dir, "0_data", "Prince_2023_MK_precise.csv", sep = "/"))
+mk <- read_csv(raw_data) #read in raw data
+
+#get swordfish data
+mk_swordfish <- mk %>% filter(species == "Xiphias gladius")
+summary(mk_swordfish)
+
+```
+
+median m/k is 1.0873\
+There is no data for when M/k = 1.0873, but the closest (in direction of the mean M/k) is m/k = 1.1251:\
+Linf = 1831.6\
+k = 0.391\
+t0 = -0.0210\
+m = 0.4399305\
+max.age = 10\
+
+```{r swordfish baseline scenarios}
+# Create the baseline data
+baseline <- data.frame(
+  species = "swordfish",
+  Linf = 1831.6,
+  K = 0.391,
+  M = 0.4399305,
+  t0 = -0.0210,
+  tmax = 10,
+  scenario = "baseline"
+)
+
+# Create vectors of decreasing and increasing values for K and M (20% change steps)
+decreasing_values <- c(0.8, 0.6, 0.4)
+increasing_values <- c(1.2, 1.4, 1.6)
+
+# Function to modify data
+modify_data <- function(baseline, K_factor, M_factor) {
+  return(baseline %>%
+           mutate(
+             K = K * K_factor,
+             M = M * M_factor,
+             scenario = "experimental"
+           ))
+} #close modify function
+
+# Create an empty data frame to store the results
+result_data <- data.frame()
+
+# nested loops to loop through each combination of changing M and K ####
+
+  # Loop through each value of K and M
+  for (K_factor in decreasing_values) {
+    for (M_factor in increasing_values) {
+      modified_data <- modify_data(baseline, K_factor, M_factor)
+      result_data <- rbind(result_data, modified_data)
+    }
+  }
+  # Loop through each value of K and M in reverse order
+  for (K_factor in increasing_values) {
+    for (M_factor in decreasing_values) {
+      modified_data <- modify_data(baseline, K_factor, M_factor)
+      result_data <- rbind(result_data, modified_data)
+    }
+  }
+  # Loop through each value of K and M increasing
+  for (K_factor1 in increasing_values) {
+    for (M_factor1 in increasing_values) {
+      modified_data <- modify_data(baseline,  K_factor1, M_factor1)
+      result_data <- rbind(result_data, modified_data)
+    }
+  }
+  # Loop through each value of K and M decreasing
+  for (K_factor2 in decreasing_values) {
+    for (M_factor2 in decreasing_values) {
+      modified_data <- modify_data(baseline,  K_factor2, M_factor2)
+      result_data <- rbind(result_data, modified_data)
+    }
+  } #end loop
+
+# Reset row names in the result_data
+row.names(result_data) <- NULL
+
+# Bind with baseline
+result_data <- rbind(result_data, baseline)
+
+```
+
+
+```{r swordfish baseline write csv}
+result_data <- result_data %>%  
+  mutate(M = round(M, 3))
+
+project_dir <- here::here()
+sw_baseline_path <- file.path(paste(project_dir, "03_results", "output1", "01_baseline_scenarios_swordfish.csv", sep = "/"))
+write_csv(result_data, sw_baseline_path)
+```
+
+```{r swordfish baseline increasing K scenarios}
+
+rm(list=ls()) # clear workspace
+
+# Create the baseline data
+baseline <- data.frame(
+  species = "swordfish",
+  Linf = 1831.6,
+  K = 0.391,
+  M = 0.4399305,
+  t0 = -0.0210,
+  tmax = 10,
+  scenario = "baseline"
+)
+
+# vector of increasing K
+increasing_values <- seq(1.01, 2, by=0.05)
+
+# Function to modify data
+modify_data <- function(baseline, K_factor) {
+  return(baseline %>%
+           mutate(
+             K = K * K_factor,
+             scenario = "experimental"
+           ))
+} #close modify function
+
+# Create an empty data frame to store the results
+result_data <- data.frame()
+
+# nested loops to loop through each decrease in Linf and each combination of changing K ####
+
+  # Loop through each value of K 
+for (K_factor in increasing_values) {
+      modified_data <- modify_data(baseline, K_factor)
+      result_data <- rbind(result_data, modified_data)
+ }#end loop
+
+# Reset row names in the result_data
+row.names(result_data) <- NULL
+
+# Bind with baseline
+result_data <- rbind(result_data, baseline)
+
+```
+
+
+```{r swordfish baseline increasing K write csv}
+result_data <- result_data %>%  
+  mutate(M = round(M, 3))
+
+project_dir <- here::here()
+sw_baselinek_path <- file.path(paste(project_dir, "03_results", "output1", "02_baselinek_scenarios_swordfish.csv", sep = "/"))
+write_csv(result_data, sw_baselinek_path)
+```
+
+## moon wrasse baseline
+
+```{r moonwrasse - Thalassoma lunare }
+
+rm(list=ls()) # clear workspace
+
+project_dir <- here::here()
+raw_data <- file.path(paste(project_dir, "0_data", "Prince_2023_MK_precise.csv", sep = "/"))
+mk <- read_csv(raw_data) #read in raw data
+
+mk_moonwrasse <- mk %>% filter(species == "Thalassoma lunare")
+summary(mk_moonwrasse)
+
+```
+
+median m/k is 1.3391\
+There is no data for when M/k = 1.3391, but the closest (in direction of the mean M/k) is m/k = 1.3453825:\
+Linf = 141\
+k = 0.540\
+t0 = -0.136\
+m = 0.7265065\
+max.age = 6\
+
+```{r moonwrasse baseline scenarios}
+# Create the baseline data
+baseline <- data.frame(
+  species = "moonwrasse",
+  Linf = 141,
+  K = 0.540,
+  M = 0.7265065,
+  t0 = -0.136,
+  tmax = 6,
+  scenario = "baseline"
+)
+
+# Create vectors of decreasing and increasing values for K and M (20% change steps)
+decreasing_values <- c(0.8, 0.6, 0.4)
+increasing_values <- c(1.2, 1.4, 1.6)
+
+# Function to modify data
+modify_data <- function(baseline, K_factor, M_factor) {
+  return(baseline %>%
+           mutate(
+             K = K * K_factor,
+             M = M * M_factor,
+             scenario = "experimental"
+           ))
+} #close modify function
+
+# Create an empty data frame to store the results
+result_data <- data.frame()
+
+# nested loops to loop through each combination of changing M and K ####
+
+  # Loop through each value of K and M
+  for (K_factor in decreasing_values) {
+    for (M_factor in increasing_values) {
+      modified_data <- modify_data(baseline, K_factor, M_factor)
+      result_data <- rbind(result_data, modified_data)
+    }
+  }
+  # Loop through each value of K and M in reverse order
+  for (K_factor in increasing_values) {
+    for (M_factor in decreasing_values) {
+      modified_data <- modify_data(baseline, K_factor, M_factor)
+      result_data <- rbind(result_data, modified_data)
+    }
+  }
+  # Loop through each value of K and M increasing
+  for (K_factor1 in increasing_values) {
+    for (M_factor1 in increasing_values) {
+      modified_data <- modify_data(baseline,  K_factor1, M_factor1)
+      result_data <- rbind(result_data, modified_data)
+    }
+  }
+  # Loop through each value of K and M decreasing
+  for (K_factor2 in decreasing_values) {
+    for (M_factor2 in decreasing_values) {
+      modified_data <- modify_data(baseline,  K_factor2, M_factor2)
+      result_data <- rbind(result_data, modified_data)
+    }
+  } #end loop
+
+# Reset row names in the result_data
+row.names(result_data) <- NULL
+
+# Bind with baseline
+result_data <- rbind(result_data, baseline)
+
+```
+
+
+```{r moonwrasse baseline write csv}
+result_data <- result_data %>%  
+  mutate(M = round(M, 3))
+
+project_dir <- here::here()
+mw_baseline_path <- file.path(paste(project_dir, "03_results", "output1", "01_baseline_scenarios_moonwrasse.csv", sep = "/"))
+write_csv(result_data, mw_baseline_path)
+```
+
+```{r moonwrasse baseline increasing K scenarios}
+
+rm(list=ls()) # clear workspace
+
+# Create the baseline data
+baseline <- data.frame(
+  species = "moonwrasse",
+  Linf = 141,
+  K = 0.540,
+  M = 0.7265065,
+  t0 = -0.136,
+  tmax = 6,
+  scenario = "baseline"
+)
+
+# vector of increasing K
+increasing_values <- seq(1.01, 2, by=0.05)
+
+# Function to modify data
+modify_data <- function(baseline, K_factor) {
+  return(baseline %>%
+           mutate(
+             K = K * K_factor,
+             scenario = "experimental"
+           ))
+} #close modify function
+
+# Create an empty data frame to store the results
+result_data <- data.frame()
+
+# nested loops to loop through each decrease in Linf and each combination of changing K ####
+
+  # Loop through each value of K 
+for (K_factor in increasing_values) {
+      modified_data <- modify_data(baseline, K_factor)
+      result_data <- rbind(result_data, modified_data)
+ }#end loop
+
+# Reset row names in the result_data
+row.names(result_data) <- NULL
+
+# Bind with baseline
+result_data <- rbind(result_data, baseline)
+
+```
+
+
+```{r moonwrasse baseline increasing K write csv}
+result_data <- result_data %>%  
+  mutate(M = round(M, 3))
+
+project_dir <- here::here()
+mw_baselinek_path <- file.path(paste(project_dir, "03_results", "output1", "02_baselinek_scenarios_moonwrasse.csv", sep = "/"))
+write_csv(result_data, mw_baselinek_path)
+```
+
+
+

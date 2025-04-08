@@ -1,0 +1,1777 @@
+---
+title: "08_result_ggplots_SENS_2024"
+author: "Sarah Willington"
+date: "2024-05-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r libraries, include=FALSE}
+library(tidyverse)
+library(patchwork)
+library(here)
+library(colorspace)
+```
+
+## alfonsino set up data
+
+
+```{r alfonsino load all data}
+project_dir <- here::here()
+
+#raw data
+raw_data <- file.path(paste(project_dir, "0_data", "Prince_2023_MK_precise.csv", sep = "/"))
+mk <- read_csv(raw_data) #read in raw data
+mk_alfonsino <- mk %>% filter(species == "Beryx splendens")
+
+#original for comparison
+Linf25_alfonsino <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linf_alfonsino_fulldist.csv", sep = "/"))
+alfonsino_Linf25 <- read_csv(Linf25_alfonsino)
+alfonsino_Linf25$Linf <- factor(alfonsino_Linf25$Linf) # make Linf25 discrete
+alfonsino_Linf25 <- mutate(alfonsino_Linf25, sens.run.name = "original")
+
+#load sens dfs
+fM_incCV_alfonsino <- file.path(project_dir, 
+                                        "03_results",
+                                         "output3", 
+                                         "08_sim_output_Linf_fM_incCV_alfonsino_fulldist.csv")
+alfonsino_fM_incCV <- read_csv(fM_incCV_alfonsino)
+alfonsino_fM_incCV$Linf <- factor(alfonsino_fM_incCV$Linf) # make Linf discrete
+alfonsino_fM_incCV <- rbind(alfonsino_fM_incCV, alfonsino_Linf25)
+
+fM_decCV_alfonsino <- file.path(project_dir, 
+                                         "03_results",
+                                         "output3", 
+                                         "08_sim_output_Linf_fM_decCV_alfonsino_fulldist.csv")
+alfonsino_fM_decCV <- read_csv(fM_decCV_alfonsino)
+alfonsino_fM_decCV$Linf <- factor(alfonsino_fM_decCV$Linf) # make Linf discrete
+alfonsino_fM_decCV <- rbind(alfonsino_fM_decCV, alfonsino_Linf25)
+
+cM_incCV_alfonsino <- file.path(project_dir, 
+                                         "03_results",
+                                         "output3", 
+                                         "08_sim_output_Linf_cM_incCV_alfonsino_fulldist.csv")
+alfonsino_cM_incCV <- read_csv(cM_incCV_alfonsino)
+alfonsino_cM_incCV$Linf <- factor(alfonsino_cM_incCV$Linf) # make Linf discrete
+alfonsino_cM_incCV <- rbind(alfonsino_cM_incCV, alfonsino_Linf25)
+
+cM_decCV_alfonsino <- file.path(project_dir, 
+                                        "03_results",
+                                         "output3", 
+                                         "08_sim_output_Linf_cM_decCV_alfonsino_fulldist.csv")
+alfonsino_cM_decCV <- read_csv(cM_decCV_alfonsino)
+alfonsino_cM_decCV$Linf <- factor(alfonsino_cM_decCV$Linf) # make Linf discrete
+alfonsino_cM_decCV <- rbind(alfonsino_cM_decCV, alfonsino_Linf25)
+
+cM_fCV_alfonsino <- file.path(project_dir, 
+                                         "03_results",
+                                         "output3", 
+                                         "08_sim_output_Linf_cM_fCV_alfonsino_fulldist.csv")
+alfonsino_cM_fCV <- read_csv(cM_fCV_alfonsino)
+alfonsino_cM_fCV$Linf <- factor(alfonsino_cM_fCV$Linf) # make Linf discrete
+alfonsino_cM_fCV <- rbind(alfonsino_cM_fCV, alfonsino_Linf25)
+
+## bind dfs
+alfonsino_sens <- rbind(alfonsino_fM_incCV,alfonsino_fM_decCV, alfonsino_cM_incCV, alfonsino_cM_decCV, alfonsino_cM_fCV, alfonsino_Linf25 )
+alfonsino_sens$sens.run.name<- factor(alfonsino_sens$sens.run.name,levels=c("hjuvM decCV", "hjuvM incCV", "hjuvM fCV", "fM decCV", "fM incCV", "original"), ordered = TRUE)
+
+```
+
+```{r alfonsino change in mean data}
+
+alfonsino_sens10 <- alfonsino_sens %>%  
+  filter(Linf==43.668)
+
+alfonsino_sens20 <- alfonsino_sens %>%  
+  filter(Linf==38.816)
+
+```
+
+```{r alfonsino cM decCV}
+alfonsino_cM_decCV10 <- alfonsino_cM_decCV %>%  
+  filter(Linf==43.668) %>% 
+  mutate(sens.run.name = case_when(sens.run.name == "hjuvM decCV" ~ "Sensitivity analysis run", 
+            sens.run.name == "original" ~ "Main model run"))
+
+alfonsino_sens1 <- ggplot(data = alfonsino_cM_decCV10, aes(x = Mk.ratio, y = change.mean.percent, shape=sens.run.name, colour=change.max.percent)) +
+  geom_vline(xintercept = 1.34, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(subtitle ="D", x = "M/K (mortality/growth) ratio", y = "% change in mean length from initial scenario",  shape = "Model run type",colour = expression("% change in maximum \nlength from initial scenario")) +
+  ggtitle(expression("High juvenile mortality & decreasing CV"[t]))+
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8, 
+                                   limits = range(c(-152.505, 31.553)))+
+  scale_y_continuous( breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8),
+        plot.subtitle = element_text(hjust = -0.05, vjust =1, size = 16, face = 'bold'),
+        strip.background = element_blank(),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size = 11, hjust = 0.5),
+        axis.title = element_text(size=15),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 4),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=12), 
+        legend.title = element_text(size=14), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_alfonsino, aes(x = standardised.M.K, y= -70),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_alfonsino, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+alfonsino_sens1
+
+```
+
+```{r alfonsino cM fCV}
+alfonsino_cM_fCV10 <- alfonsino_cM_fCV %>%  
+  filter(Linf==43.668) %>% 
+  mutate(sens.run.name = case_when(sens.run.name == "hjuvM fCV" ~ "Sensitivity analysis run", 
+            sens.run.name == "original" ~ "Main model run"))
+
+alfonsino_sens2 <- ggplot(data = alfonsino_cM_fCV10, aes(x = Mk.ratio, y = change.mean.percent,  shape=sens.run.name, colour=change.max.percent)) +
+  geom_vline(xintercept = 1.34, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(subtitle ="A",x = "M/K (mortality/growth) ratio", y = "% change in mean length from initial scenario",  shape = "Model run type",colour = expression("% change in maximum \nlength from initial scenario")) +
+  ggtitle(expression("High juvenile mortality & fixed CV"[t]))+
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8, 
+                                   limits = range(c(-152.505, 31.553)))+
+  scale_y_continuous( breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8), 
+        plot.subtitle = element_text(hjust = -0.05, vjust =1, size = 16, face = 'bold'),
+        strip.background = element_blank(),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size = 11, hjust = 0.5),
+        axis.title = element_text(size=15),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 4),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=12), 
+        legend.title = element_text(size=14), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_alfonsino, aes(x = standardised.M.K, y= -70),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_alfonsino, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+alfonsino_sens2
+
+```
+
+```{r alfonsino cM incCV}
+alfonsino_cM_incCV10 <- alfonsino_cM_incCV %>%  
+  filter(Linf==43.668) %>% 
+  mutate(sens.run.name = case_when(sens.run.name == "hjuvM incCV" ~ "Sensitivity analysis run", 
+            sens.run.name == "original" ~ "Main model run"))
+
+alfonsino_sens3 <- ggplot(data = alfonsino_cM_incCV10, aes(x = Mk.ratio, y = change.mean.percent,  shape=sens.run.name, colour=change.max.percent)) +
+  geom_vline(xintercept = 1.34, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(subtitle ="E",x = "M/K (mortality/growth) ratio", y = "% change in mean length from initial scenario",  shape = "Model run type",colour = expression("% change in maximum \nlength from initial scenario")) +
+  ggtitle(expression("High juvenile mortality & increasing CV"[t]))+
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8, 
+                                   limits = range(c(-152.505, 31.553)))+
+  scale_y_continuous( breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8), 
+        plot.subtitle = element_text(hjust = -0.05, vjust =1, size = 16, face = 'bold'),
+        strip.background = element_blank(),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size = 11, hjust = 0.5),
+        axis.title = element_text(size=15),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 4),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=12), 
+        legend.title = element_text(size=14), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_alfonsino, aes(x = standardised.M.K, y= -70),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_alfonsino, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+alfonsino_sens3
+
+```
+
+```{r alfonsino fM decCV}
+alfonsino_fM_decCV10 <- alfonsino_fM_decCV %>%  
+  filter(Linf==43.668) %>% 
+  mutate(sens.run.name = case_when(sens.run.name == "fM decCV" ~ "Sensitivity analysis run", 
+            sens.run.name == "original" ~ "Main model run"))
+
+alfonsino_sens4 <- ggplot(data = alfonsino_fM_decCV10, aes(x = Mk.ratio, y = change.mean.percent,  shape=sens.run.name, colour=change.max.percent)) +
+  geom_vline(xintercept = 1.34, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(subtitle ="B",x = "M/K (mortality/growth) ratio", y = "% change in mean length from initial scenario",  shape = "Model run type",colour = expression("% change in maximum \nlength from initial scenario")) +
+  ggtitle(expression("Fixed mortality & decreasing CV"[t]))+
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8, 
+                                   limits = range(c(-152.505, 31.553)))+
+  scale_y_continuous( breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8), 
+        plot.subtitle = element_text(hjust = -0.05, vjust =1, size = 16, face = 'bold'),
+        strip.background = element_blank(),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size = 11, hjust = 0.5),
+        axis.title = element_text(size=15),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 4),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=12), 
+        legend.title = element_text(size=14), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_alfonsino, aes(x = standardised.M.K, y= -70),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_alfonsino, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+alfonsino_sens4
+
+```
+
+```{r alfonsino fM incCV}
+alfonsino_fM_incCV10 <- alfonsino_fM_incCV %>%  
+  filter(Linf==43.668) %>% 
+  mutate(sens.run.name = case_when(sens.run.name == "fM incCV" ~ "Sensitivity analysis run", 
+            sens.run.name == "original" ~ "Main model run")) %>% 
+  group_by(K, M) %>%
+  arrange(sens.run.name, .by_group = TRUE) %>% 
+  mutate(diff_mean=change.mean.percent-lag(change.mean.percent)) %>% 
+  ungroup()
+
+alfonsino_sens5 <- ggplot(data = alfonsino_fM_incCV10, aes(x = Mk.ratio, y = change.mean.percent,  shape=sens.run.name, colour=change.max.percent)) +
+  geom_vline(xintercept = 1.34, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(subtitle = "C", x = "M/K (mortality/growth) ratio", y = "% change in mean length from initial scenario",  shape = "Model run type",colour = expression("% change in maximum \nlength from initial scenario")) +
+  ggtitle(expression("Fixed mortality & increasing CV"[t]))+
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8, 
+                                   limits = range(c(-152.505, 31.553)))+
+  scale_y_continuous( breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8), 
+        strip.background = element_blank(),
+        plot.subtitle = element_text(hjust = -0.05, vjust =1, size = 16, face = 'bold'),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(),
+        plot.title = element_text(size = 11, hjust = 0.5),
+        axis.title = element_text(size=15),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 4),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=12), 
+        legend.title = element_text(size=14), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_alfonsino, aes(x = standardised.M.K, y= -70),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_alfonsino, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+alfonsino_sens5
+
+```
+
+
+```{r}
+panel <- (alfonsino_sens2+ guide_area()+alfonsino_sens4 + alfonsino_sens5 +alfonsino_sens1 + alfonsino_sens3)+
+  plot_layout(ncol=2,  
+              axis_titles = "collect", 
+              guides = "collect")
+
+plot_path <- file.path(project_dir, "03_results",
+                             "main_plots", "sens plots")
+
+
+ggsave("alfonsino_change_mean_SENS_Linf10_fulldist.png",
+       plot = panel, 
+       path = plot_path, 
+       width = 19, height = 33, units = "cm")
+```
+
+```{r}
+test <- rbind(alfonsino_cM_decCV10, alfonsino_cM_incCV10, alfonsino_cM_fCV10)
+
+testpos <- test %>% filter(change.mean.percent>=0) %>% 
+  group_by(sens.run.name) %>% 
+  summarise(av_change=mean(change.mean.percent))
+
+testneg <- test %>% filter(change.mean.percent<=0) %>% 
+  group_by(sens.run.name) %>% 
+  summarise(av_change=mean(change.mean.percent))
+
+```
+
+
+
+
+# swordfish
+
+
+## swordfish set up data
+
+
+```{r swordfish load all data}
+rm(list=ls()) # clear workspace
+project_dir <- here::here()
+
+#raw data
+raw_data <- file.path(paste(project_dir, "0_data", "Prince_2023_MK_precise.csv", sep = "/"))
+mk <- read_csv(raw_data) #read in raw data
+mk_swordfish <- mk %>% filter(species == "Xiphias gladius")
+
+#original for comparison
+Linf25_swordfish <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linf_swordfish_fulldist.csv", sep = "/"))
+swordfish_Linf25 <- read_csv(Linf25_swordfish)
+swordfish_Linf25$Linf <- factor(swordfish_Linf25$Linf) # make Linf25 discrete
+swordfish_Linf25 <- mutate(swordfish_Linf25, sens.run.name = "original")
+
+#load sens dfs
+fM_incCV_swordfish <- file.path(project_dir, 
+                                         "03_results",
+                                         "output3", 
+                                         "08_sim_output_Linf_fM_incCV_swordfish_fulldist.csv")
+swordfish_fM_incCV <- read_csv(fM_incCV_swordfish)
+swordfish_fM_incCV$Linf <- factor(swordfish_fM_incCV$Linf) # make Linf discrete
+swordfish_fM_incCV <- rbind(swordfish_fM_incCV, swordfish_Linf25)
+
+fM_decCV_swordfish <- file.path(project_dir, 
+                                         "03_results",
+                                         "output3", 
+                                         "08_sim_output_Linf_fM_decCV_swordfish_fulldist.csv")
+swordfish_fM_decCV <- read_csv(fM_decCV_swordfish)
+swordfish_fM_decCV$Linf <- factor(swordfish_fM_decCV$Linf) # make Linf discrete
+swordfish_fM_decCV <- rbind(swordfish_fM_decCV, swordfish_Linf25)
+
+cM_incCV_swordfish <- file.path(project_dir, 
+                                         "03_results",
+                                         "output3", 
+                                         "08_sim_output_Linf_cM_incCV_swordfish_fulldist.csv")
+swordfish_cM_incCV <- read_csv(cM_incCV_swordfish)
+swordfish_cM_incCV$Linf <- factor(swordfish_cM_incCV$Linf) # make Linf discrete
+swordfish_cM_incCV <- rbind(swordfish_cM_incCV, swordfish_Linf25)
+
+cM_decCV_swordfish <- file.path(project_dir, 
+                                         "03_results",
+                                         "output3", 
+                                         "08_sim_output_Linf_cM_decCV_swordfish_fulldist.csv")
+swordfish_cM_decCV <- read_csv(cM_decCV_swordfish)
+swordfish_cM_decCV$Linf <- factor(swordfish_cM_decCV$Linf) # make Linf discrete
+swordfish_cM_decCV <- rbind(swordfish_cM_decCV, swordfish_Linf25)
+
+cM_fCV_swordfish <- file.path(project_dir, 
+                                        "03_results",
+                                         "output3", 
+                                         "08_sim_output_Linf_cM_fCV_swordfish_fulldist.csv")
+swordfish_cM_fCV <- read_csv(cM_fCV_swordfish)
+swordfish_cM_fCV$Linf <- factor(swordfish_cM_fCV$Linf) # make Linf discrete
+swordfish_cM_fCV <- rbind(swordfish_cM_fCV, swordfish_Linf25)
+
+## bind dfs
+swordfish_sens <- rbind(swordfish_fM_incCV,swordfish_fM_decCV, swordfish_cM_incCV, swordfish_cM_decCV, swordfish_cM_fCV, swordfish_Linf25 )
+swordfish_sens$sens.run.name<- factor(swordfish_sens$sens.run.name,levels=c("hjuvM decCV", "hjuvM incCV", "hjuvM fCV", "fM decCV", "fM incCV", "original"), ordered = TRUE)
+
+```
+
+```{r swordfish change in mean data}
+
+swordfish_sens10 <- swordfish_sens %>%  
+  filter(Linf==164.844)
+
+swordfish_sens20 <- swordfish_sens %>%  
+  filter(Linf==146.528)
+
+```
+
+```{r swordfish cM decCV}
+swordfish_cM_decCV10 <- swordfish_cM_decCV %>%  
+  filter(Linf==164.844) %>% 
+  mutate(sens.run.name = case_when(sens.run.name == "hjuvM decCV" ~ "Sensitivity analysis run", 
+            sens.run.name == "original" ~ "Main model run"))
+
+swordfish_sens1 <- ggplot(data = swordfish_cM_decCV10, aes(x = Mk.ratio, y = change.mean.percent, shape=sens.run.name, colour=change.max.percent)) +
+  geom_vline(xintercept = 1.1251, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(subtitle ="D", x = "M/K (mortality/growth) ratio", y = "% change in mean length from initial scenario",  shape = "Model run type",colour = expression("% change in maximum \nlength from initial scenario")) +
+  ggtitle(expression("High juvenile mortality & decreasing CV"[t]))+
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8, 
+                                   limits = range(c(-145 , 20)))+
+  scale_y_continuous( breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8),
+        plot.subtitle = element_text(hjust = -0.05, vjust =1, size = 16, face = 'bold'),
+        strip.background = element_blank(),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size = 11, hjust = 0.5),
+        axis.title = element_text(size=15),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 4),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=12), 
+        legend.title = element_text(size=14), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_swordfish, aes(x = standardised.M.K, y= -70),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_swordfish, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+swordfish_sens1
+
+```
+
+```{r swordfish cM fCV}
+swordfish_cM_fCV10 <- swordfish_cM_fCV %>%  
+  filter(Linf==164.844) %>% 
+  mutate(sens.run.name = case_when(sens.run.name == "hjuvM fCV" ~ "Sensitivity analysis run", 
+            sens.run.name == "original" ~ "Main model run"))
+
+swordfish_sens2 <- ggplot(data = swordfish_cM_fCV10, aes(x = Mk.ratio, y = change.mean.percent,  shape=sens.run.name, colour=change.max.percent)) +
+  geom_vline(xintercept = 1.1251, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(subtitle ="A",x = "M/K (mortality/growth) ratio", y = "% change in mean length from initial scenario",  shape = "Model run type",colour = expression("% change in maximum \nlength from initial scenario")) +
+  ggtitle(expression("High juvenile mortality & fixed CV"[t]))+
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8, 
+                                   limits = range(c(-145 , 20)))+
+  scale_y_continuous( breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8), 
+        plot.subtitle = element_text(hjust = -0.05, vjust =1, size = 16, face = 'bold'),
+        strip.background = element_blank(),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size = 11, hjust = 0.5),
+        axis.title = element_text(size=15),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 4),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=12), 
+        legend.title = element_text(size=14), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_swordfish, aes(x = standardised.M.K, y= -70),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_swordfish, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+swordfish_sens2
+
+```
+
+```{r swordfish cM incCV}
+swordfish_cM_incCV10 <- swordfish_cM_incCV %>%  
+  filter(Linf==164.844) %>% 
+  mutate(sens.run.name = case_when(sens.run.name == "hjuvM incCV" ~ "Sensitivity analysis run", 
+            sens.run.name == "original" ~ "Main model run"))
+
+swordfish_sens3 <- ggplot(data = swordfish_cM_incCV10, aes(x = Mk.ratio, y = change.mean.percent,  shape=sens.run.name, colour=change.max.percent)) +
+  geom_vline(xintercept = 1.1251, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(subtitle ="E",x = "M/K (mortality/growth) ratio", y = "% change in mean length from initial scenario",  shape = "Model run type",colour = expression("% change in maximum \nlength from initial scenario")) +
+  ggtitle(expression("High juvenile mortality & increasing CV"[t]))+
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8, 
+                                   limits = range(c(-145 , 20)))+
+  scale_y_continuous( breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8), 
+        plot.subtitle = element_text(hjust = -0.05, vjust =1, size = 16, face = 'bold'),
+        strip.background = element_blank(),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size = 11, hjust = 0.5),
+        axis.title = element_text(size=15),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 4),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=12), 
+        legend.title = element_text(size=14), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_swordfish, aes(x = standardised.M.K, y= -70),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_swordfish, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+swordfish_sens3
+
+```
+
+```{r swordfish fM decCV}
+swordfish_fM_decCV10 <- swordfish_fM_decCV %>%  
+  filter(Linf==164.844) %>% 
+  mutate(sens.run.name = case_when(sens.run.name == "fM decCV" ~ "Sensitivity analysis run", 
+            sens.run.name == "original" ~ "Main model run"))
+
+swordfish_sens4 <- ggplot(data = swordfish_fM_decCV10, aes(x = Mk.ratio, y = change.mean.percent,  shape=sens.run.name, colour=change.max.percent)) +
+  geom_vline(xintercept = 1.1251, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(subtitle ="B",x = "M/K (mortality/growth) ratio", y = "% change in mean length from initial scenario",  shape = "Model run type",colour = expression("% change in maximum \nlength from initial scenario")) +
+  ggtitle(expression("Fixed mortality & decreasing CV"[t]))+
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8, 
+                                   limits = range(c(-145 , 20)))+
+  scale_y_continuous( breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8), 
+        plot.subtitle = element_text(hjust = -0.05, vjust =1, size = 16, face = 'bold'),
+        strip.background = element_blank(),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size = 11, hjust = 0.5),
+        axis.title = element_text(size=15),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 4),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=12), 
+        legend.title = element_text(size=14), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_swordfish, aes(x = standardised.M.K, y= -70),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_swordfish, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+swordfish_sens4
+
+```
+
+```{r swordfish fM incCV}
+swordfish_fM_incCV10 <- swordfish_fM_incCV %>%  
+  filter(Linf==164.844) %>% 
+  mutate(sens.run.name = case_when(sens.run.name == "fM incCV" ~ "Sensitivity analysis run", 
+            sens.run.name == "original" ~ "Main model run"))
+
+swordfish_sens5 <- ggplot(data = swordfish_fM_incCV10, aes(x = Mk.ratio, y = change.mean.percent,  shape=sens.run.name, colour=change.max.percent)) +
+  geom_vline(xintercept = 1.1251, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(subtitle = "C", x = "M/K (mortality/growth) ratio", y = "% change in mean length from initial scenario",  shape = "Model run type",colour = expression("% change in maximum \nlength from initial scenario")) +
+  ggtitle(expression("Fixed mortality & increasing CV"[t]))+
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8, 
+                                   limits = range(c(-145 , 20)))+
+  scale_y_continuous( breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8), 
+        strip.background = element_blank(),
+        plot.subtitle = element_text(hjust = -0.05, vjust =1, size = 16, face = 'bold'),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(),
+        plot.title = element_text(size = 11, hjust = 0.5),
+        axis.title = element_text(size=15),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 4),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=12), 
+        legend.title = element_text(size=14), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_swordfish, aes(x = standardised.M.K, y= -70),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_swordfish, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+swordfish_sens5
+
+```
+
+
+```{r}
+panel <- (swordfish_sens2+ guide_area()+swordfish_sens4 + swordfish_sens5 +swordfish_sens1 + swordfish_sens3)+
+  plot_layout(ncol=2,  axis_titles = "collect", guides = "collect")
+
+plot_path <- file.path(project_dir, "03_results","main_plots", "sens plots")
+
+ggsave("swordfish_change_mean_SENS_Linf10_fulldist.png",
+       plot = panel, 
+       path = plot_path, 
+       width = 19, height = 33, units = "cm")
+```
+
+# moonwrasse
+
+
+## moonwrasse set up data
+
+
+```{r moonwrasse load all data}
+rm(list=ls()) # clear workspace
+project_dir <- here::here()
+
+#raw data
+raw_data <- file.path(paste(project_dir, "0_data", "Prince_2023_MK_precise.csv", sep = "/"))
+mk <- read_csv(raw_data) #read in raw data
+mk_moonwrasse <- mk %>% filter(species == "Thalassoma lunare")
+
+#original for comparison
+Linf25_moonwrasse <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linf_moonwrasse_fulldist.csv", sep = "/"))
+moonwrasse_Linf25 <- read_csv(Linf25_moonwrasse)
+moonwrasse_Linf25$Linf <- factor(moonwrasse_Linf25$Linf) # make Linf25 discrete
+moonwrasse_Linf25 <- mutate(moonwrasse_Linf25, sens.run.name = "original")
+
+#load sens dfs
+fM_incCV_moonwrasse <- file.path(project_dir, 
+                                        "03_results",
+                                         "output3", 
+                                         "08_sim_output_Linf_fM_incCV_moonwrasse_fulldist.csv")
+moonwrasse_fM_incCV <- read_csv(fM_incCV_moonwrasse)
+moonwrasse_fM_incCV$Linf <- factor(moonwrasse_fM_incCV$Linf) # make Linf discrete
+moonwrasse_fM_incCV <- rbind(moonwrasse_fM_incCV, moonwrasse_Linf25)
+
+fM_decCV_moonwrasse <- file.path(project_dir, 
+                                        "03_results",
+                                         "output3", 
+                                         "08_sim_output_Linf_fM_decCV_moonwrasse_fulldist.csv")
+moonwrasse_fM_decCV <- read_csv(fM_decCV_moonwrasse)
+moonwrasse_fM_decCV$Linf <- factor(moonwrasse_fM_decCV$Linf) # make Linf discrete
+moonwrasse_fM_decCV <- rbind(moonwrasse_fM_decCV, moonwrasse_Linf25)
+
+cM_incCV_moonwrasse <- file.path(project_dir, 
+                                         "03_results",
+                                         "output3", 
+                                         "08_sim_output_Linf_cM_incCV_moonwrasse_fulldist.csv")
+moonwrasse_cM_incCV <- read_csv(cM_incCV_moonwrasse)
+moonwrasse_cM_incCV$Linf <- factor(moonwrasse_cM_incCV$Linf) # make Linf discrete
+moonwrasse_cM_incCV <- rbind(moonwrasse_cM_incCV, moonwrasse_Linf25)
+
+cM_decCV_moonwrasse <- file.path(project_dir, 
+                                         "03_results",
+                                         "output3", 
+                                         "08_sim_output_Linf_cM_decCV_moonwrasse_fulldist.csv")
+moonwrasse_cM_decCV <- read_csv(cM_decCV_moonwrasse)
+moonwrasse_cM_decCV$Linf <- factor(moonwrasse_cM_decCV$Linf) # make Linf discrete
+moonwrasse_cM_decCV <- rbind(moonwrasse_cM_decCV, moonwrasse_Linf25)
+
+cM_fCV_moonwrasse <- file.path(project_dir, 
+                                         "03_results",
+                                         "output3", 
+                                         "08_sim_output_Linf_cM_fCV_moonwrasse_fulldist.csv")
+moonwrasse_cM_fCV <- read_csv(cM_fCV_moonwrasse)
+moonwrasse_cM_fCV$Linf <- factor(moonwrasse_cM_fCV$Linf) # make Linf discrete
+moonwrasse_cM_fCV <- rbind(moonwrasse_cM_fCV, moonwrasse_Linf25)
+
+## bind dfs
+moonwrasse_sens <- rbind(moonwrasse_fM_incCV,moonwrasse_fM_decCV, moonwrasse_cM_incCV, moonwrasse_cM_decCV, moonwrasse_cM_fCV, moonwrasse_Linf25 )
+moonwrasse_sens$sens.run.name<- factor(moonwrasse_sens$sens.run.name,levels=c("hjuvM decCV", "hjuvM incCV", "hjuvM fCV", "fM decCV", "fM incCV", "original"), ordered = TRUE)
+
+```
+
+```{r moonwrasse change in mean data}
+
+moonwrasse_sens10 <- moonwrasse_sens %>%  
+  filter(Linf==12.69)
+
+moonwrasse_sens20 <- moonwrasse_sens %>%  
+  filter(Linf==11.28)
+
+```
+
+
+```{r moonwrasse cM decCV}
+moonwrasse_cM_decCV10 <- moonwrasse_cM_decCV %>%  
+  filter(Linf==12.69) %>% 
+  mutate(sens.run.name = case_when(sens.run.name == "hjuvM decCV" ~ "Sensitivity analysis run", 
+            sens.run.name == "original" ~ "Main model run"))
+
+moonwrasse_sens1 <- ggplot(data = moonwrasse_cM_decCV10, aes(x = Mk.ratio, y = change.mean.percent, shape=sens.run.name, colour=change.max.percent)) +
+  geom_vline(xintercept = 1.345, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(subtitle ="D", x = "M/K (mortality/growth) ratio", y = "% change in mean length from initial scenario",  shape = "Model run type",colour = expression("% change in maximum \nlength from initial scenario")) +
+  ggtitle(expression("High juvenile mortality & decreasing CV"[t]))+
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8, 
+                                   limits = range(c(-150 , 34)))+
+  scale_y_continuous( breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8),
+        plot.subtitle = element_text(hjust = -0.05, vjust =1, size = 16, face = 'bold'),
+        strip.background = element_blank(),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size = 11, hjust = 0.5),
+        axis.title = element_text(size=15),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 4),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=12), 
+        legend.title = element_text(size=14), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_moonwrasse, aes(x = standardised.M.K, y= -70),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_moonwrasse, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+moonwrasse_sens1
+
+```
+
+```{r moonwrasse cM fCV}
+moonwrasse_cM_fCV10 <- moonwrasse_cM_fCV %>%  
+  filter(Linf==12.69) %>% 
+  mutate(sens.run.name = case_when(sens.run.name == "hjuvM fCV" ~ "Sensitivity analysis run", 
+            sens.run.name == "original" ~ "Main model run"))
+
+moonwrasse_sens2 <- ggplot(data = moonwrasse_cM_fCV10, aes(x = Mk.ratio, y = change.mean.percent,  shape=sens.run.name, colour=change.max.percent)) +
+  geom_vline(xintercept = 1.345, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(subtitle ="A",x = "M/K (mortality/growth) ratio", y = "% change in mean length from initial scenario",  shape = "Model run type",colour = expression("% change in maximum \nlength from initial scenario")) +
+  ggtitle(expression("High juvenile mortality & fixed CV"[t]))+
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8, 
+                                   limits = range(c(-150 , 34)))+
+  scale_y_continuous( breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8), 
+        plot.subtitle = element_text(hjust = -0.05, vjust =1, size = 16, face = 'bold'),
+        strip.background = element_blank(),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size = 11, hjust = 0.5),
+        axis.title = element_text(size=15),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 4),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=12), 
+        legend.title = element_text(size=14), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_moonwrasse, aes(x = standardised.M.K, y= -70),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_moonwrasse, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+moonwrasse_sens2
+
+```
+
+```{r moonwrasse cM incCV}
+moonwrasse_cM_incCV10 <- moonwrasse_cM_incCV %>%  
+  filter(Linf==12.69) %>% 
+  mutate(sens.run.name = case_when(sens.run.name == "hjuvM incCV" ~ "Sensitivity analysis run", 
+            sens.run.name == "original" ~ "Main model run"))
+
+moonwrasse_sens3 <- ggplot(data = moonwrasse_cM_incCV10, aes(x = Mk.ratio, y = change.mean.percent,  shape=sens.run.name, colour=change.max.percent)) +
+  geom_vline(xintercept = 1.345, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(subtitle ="E",x = "M/K (mortality/growth) ratio", y = "% change in mean length from initial scenario",  shape = "Model run type",colour = expression("% change in maximum \nlength from initial scenario")) +
+  ggtitle(expression("High juvenile mortality & increasing CV"[t]))+
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8, 
+                                   limits = range(c(-150 , 34)))+
+  scale_y_continuous( breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8), 
+        plot.subtitle = element_text(hjust = -0.05, vjust =1, size = 16, face = 'bold'),
+        strip.background = element_blank(),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size = 11, hjust = 0.5),
+        axis.title = element_text(size=15),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 4),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=12), 
+        legend.title = element_text(size=14), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_moonwrasse, aes(x = standardised.M.K, y= -70),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_moonwrasse, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+moonwrasse_sens3
+
+```
+
+```{r moonwrasse fM decCV}
+moonwrasse_fM_decCV10 <- moonwrasse_fM_decCV %>%  
+  filter(Linf==12.69) %>% 
+  mutate(sens.run.name = case_when(sens.run.name == "fM decCV" ~ "Sensitivity analysis run", 
+            sens.run.name == "original" ~ "Main model run"))
+
+moonwrasse_sens4 <- ggplot(data = moonwrasse_fM_decCV10, aes(x = Mk.ratio, y = change.mean.percent,  shape=sens.run.name, colour=change.max.percent)) +
+  geom_vline(xintercept = 1.345, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(subtitle ="B",x = "M/K (mortality/growth) ratio", y = "% change in mean length from initial scenario",  shape = "Model run type",colour = expression("% change in maximum \nlength from initial scenario")) +
+  ggtitle(expression("Fixed mortality & decreasing CV"[t]))+
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8, 
+                                   limits = range(c(-150 , 34)))+
+  scale_y_continuous( breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8), 
+        plot.subtitle = element_text(hjust = -0.05, vjust =1, size = 16, face = 'bold'),
+        strip.background = element_blank(),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size = 11, hjust = 0.5),
+        axis.title = element_text(size=15),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 4),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=12), 
+        legend.title = element_text(size=14), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_moonwrasse, aes(x = standardised.M.K, y= -70),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_moonwrasse, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+moonwrasse_sens4
+
+```
+
+```{r moonwrasse fM incCV}
+moonwrasse_fM_incCV10 <- moonwrasse_fM_incCV %>%  
+  filter(Linf==12.69) %>% 
+  mutate(sens.run.name = case_when(sens.run.name == "fM incCV" ~ "Sensitivity analysis run", 
+            sens.run.name == "original" ~ "Main model run"))
+
+moonwrasse_sens5 <- ggplot(data = moonwrasse_fM_incCV10, aes(x = Mk.ratio, y = change.mean.percent,  shape=sens.run.name, colour=change.max.percent)) +
+  geom_vline(xintercept = 1.345, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(subtitle = "C", x = "M/K (mortality/growth) ratio", y = "% change in mean length from initial scenario",  shape = "Model run type",colour = expression("% change in maximum \nlength from initial scenario")) +
+  ggtitle(expression("Fixed mortality & increasing CV"[t]))+
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8, 
+                                   limits = range(c(-150 , 34)))+
+  scale_y_continuous( breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8), 
+        strip.background = element_blank(),
+        plot.subtitle = element_text(hjust = -0.05, vjust =1, size = 16, face = 'bold'),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(),
+        plot.title = element_text(size = 11, hjust = 0.5),
+        axis.title = element_text(size=15),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 4),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=12), 
+        legend.title = element_text(size=14), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_moonwrasse, aes(x = standardised.M.K, y= -70),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_moonwrasse, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+moonwrasse_sens5
+
+```
+
+
+```{r}
+panel <- (moonwrasse_sens2+ guide_area()+moonwrasse_sens4 + moonwrasse_sens5 +moonwrasse_sens1 + moonwrasse_sens3)+
+  plot_layout(ncol=2,  axis_titles = "collect", guides = "collect")
+
+plot_path <- file.path(project_dir, "03_results","main_plots", "sens plots")
+
+ggsave("moonwrasse_change_mean_SENS_Linf10_fulldist.png",
+       plot = panel, 
+       path = plot_path, 
+       width = 19, height = 33, units = "cm")
+```
+
+
+# 25% truncated
+
+## alfonsino set up data
+
+
+```{r alfonsino load all data}
+project_dir <- here::here()
+
+#raw data
+raw_data <- file.path(paste(project_dir, "0_data", "Prince_2023_MK_precise.csv", sep = "/"))
+mk <- read_csv(raw_data) #read in raw data
+mk_alfonsino <- mk %>% filter(species == "Beryx splendens")
+
+#original for comparison
+Linf25_alfonsino <- file.path(paste(project_dir, 
+                                        "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linf_alfonsino_25dist.csv", sep = "/"))
+alfonsino_Linf25 <- read_csv(Linf25_alfonsino)
+alfonsino_Linf25$Linf <- factor(alfonsino_Linf25$Linf) # make Linf25 discrete
+alfonsino_Linf25 <- mutate(alfonsino_Linf25, sens.run.name = "original")
+
+#load sens dfs
+fM_incCV_alfonsino <- file.path(project_dir, 
+                                         "03_results",
+                                         "output3", 
+                                         "08_sim_output_Linf_fM_incCV_alfonsino_25dist.csv")
+alfonsino_fM_incCV <- read_csv(fM_incCV_alfonsino)
+alfonsino_fM_incCV$Linf <- factor(alfonsino_fM_incCV$Linf) # make Linf discrete
+alfonsino_fM_incCV <- rbind(alfonsino_fM_incCV, alfonsino_Linf25)
+
+fM_decCV_alfonsino <- file.path(project_dir, 
+                                         "03_results",
+                                         "output3", 
+                                         "08_sim_output_Linf_fM_decCV_alfonsino_25dist.csv")
+alfonsino_fM_decCV <- read_csv(fM_decCV_alfonsino)
+alfonsino_fM_decCV$Linf <- factor(alfonsino_fM_decCV$Linf) # make Linf discrete
+alfonsino_fM_decCV <- rbind(alfonsino_fM_decCV, alfonsino_Linf25)
+
+cM_incCV_alfonsino <- file.path(project_dir, 
+                                         "03_results",
+                                         "output3", 
+                                         "08_sim_output_Linf_cM_incCV_alfonsino_25dist.csv")
+alfonsino_cM_incCV <- read_csv(cM_incCV_alfonsino)
+alfonsino_cM_incCV$Linf <- factor(alfonsino_cM_incCV$Linf) # make Linf discrete
+alfonsino_cM_incCV <- alfonsino_cM_incCV %>%
+  mutate(sens.run.name = case_when(
+    sens.run.name == "cM incCV" ~ "hjuvM incCV"))
+alfonsino_cM_incCV <- rbind(alfonsino_cM_incCV, alfonsino_Linf25)
+
+cM_decCV_alfonsino <- file.path(project_dir, 
+                                        "03_results",
+                                         "output3", 
+                                         "08_sim_output_Linf_cM_decCV_alfonsino_25dist.csv")
+alfonsino_cM_decCV <- read_csv(cM_decCV_alfonsino)
+alfonsino_cM_decCV$Linf <- factor(alfonsino_cM_decCV$Linf) # make Linf discrete
+alfonsino_cM_decCV <- alfonsino_cM_decCV %>%
+  mutate(sens.run.name = case_when(
+    sens.run.name == "cM decCV" ~ "hjuvM decCV"))
+alfonsino_cM_decCV <- rbind(alfonsino_cM_decCV, alfonsino_Linf25)
+
+cM_fCV_alfonsino <- file.path(project_dir, 
+                                        "03_results",
+                                         "output3", 
+                                         "08_sim_output_Linf_cM_fCV_alfonsino_25dist.csv")
+alfonsino_cM_fCV <- read_csv(cM_fCV_alfonsino)
+alfonsino_cM_fCV$Linf <- factor(alfonsino_cM_fCV$Linf) # make Linf discrete
+alfonsino_cM_fCV <- alfonsino_cM_fCV %>%
+  mutate(sens.run.name = case_when(
+    sens.run.name == "cM fCV" ~ "hjuvM fCV"))
+alfonsino_cM_fCV <- rbind(alfonsino_cM_fCV, alfonsino_Linf25)
+
+## bind dfs
+alfonsino_sens <- rbind(alfonsino_fM_incCV,alfonsino_fM_decCV, alfonsino_cM_incCV, alfonsino_cM_decCV, alfonsino_cM_fCV, alfonsino_Linf25 )
+
+
+alfonsino_sens$sens.run.name<- factor(alfonsino_sens$sens.run.name,levels=c("hjuvM decCV", "hjuvM incCV", "hjuvM fCV", "fM decCV", "fM incCV", "original"), ordered = TRUE)
+
+
+```
+
+```{r alfonsino change in mean data}
+
+alfonsino_sens10 <- alfonsino_sens %>%  
+  filter(Linf==43.668)
+
+alfonsino_sens20 <- alfonsino_sens %>%  
+  filter(Linf==38.816)
+
+```
+
+```{r alfonsino cM decCV}
+alfonsino_cM_decCV10 <- alfonsino_cM_decCV %>%  
+  filter(Linf==43.668) %>% 
+  mutate(sens.run.name = case_when(sens.run.name == "hjuvM decCV" ~ "Sensitivity analysis run", 
+            sens.run.name == "original" ~ "Main model run"))
+
+alfonsino_sens1 <- ggplot(data = alfonsino_cM_decCV10, aes(x = Mk.ratio, y = change.mean.percent, shape=sens.run.name, colour=change.max.percent)) +
+  geom_vline(xintercept = 1.34, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(subtitle ="D", x = "M/K (mortality/growth) ratio", y = "% change in mean length from initial scenario",  shape = "Model run type",colour = expression("% change in maximum \nlength from initial scenario")) +
+  ggtitle(expression("High juvenile mortality & decreasing CV"[t]))+
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8, 
+                                   limits = range(c(-125, 24)))+
+  scale_y_continuous( breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8),
+        plot.subtitle = element_text(hjust = -0.05, vjust =1, size = 16, face = 'bold'),
+        strip.background = element_blank(),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size = 11, hjust = 0.5),
+        axis.title = element_text(size=15),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 4),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=12), 
+        legend.title = element_text(size=14), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_alfonsino, aes(x = standardised.M.K, y= -50),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_alfonsino, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+alfonsino_sens1
+
+```
+
+```{r alfonsino cM fCV}
+alfonsino_cM_fCV10 <- alfonsino_cM_fCV %>%  
+  filter(Linf==43.668) %>% 
+  mutate(sens.run.name = case_when(sens.run.name == "hjuvM fCV" ~ "Sensitivity analysis run", 
+            sens.run.name == "original" ~ "Main model run"))
+
+alfonsino_sens2 <- ggplot(data = alfonsino_cM_fCV10, aes(x = Mk.ratio, y = change.mean.percent,  shape=sens.run.name, colour=change.max.percent)) +
+  geom_vline(xintercept = 1.34, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(subtitle ="A",x = "M/K (mortality/growth) ratio", y = "% change in mean length from initial scenario",  shape = "Model run type",colour = expression("% change in maximum \nlength from initial scenario")) +
+  ggtitle(expression("High juvenile mortality & fixed CV"[t]))+
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8, 
+                                   limits = range(c(-125, 24)))+
+  scale_y_continuous( breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8), 
+        plot.subtitle = element_text(hjust = -0.05, vjust =1, size = 16, face = 'bold'),
+        strip.background = element_blank(),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size = 11, hjust = 0.5),
+        axis.title = element_text(size=15),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 4),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=12), 
+        legend.title = element_text(size=14), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_alfonsino, aes(x = standardised.M.K, y= -50),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_alfonsino, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+alfonsino_sens2
+
+```
+
+```{r alfonsino cM incCV}
+alfonsino_cM_incCV10 <- alfonsino_cM_incCV %>%  
+  filter(Linf==43.668) %>% 
+  mutate(sens.run.name = case_when(sens.run.name == "hjuvM incCV" ~ "Sensitivity analysis run", 
+            sens.run.name == "original" ~ "Main model run"))
+
+alfonsino_sens3 <- ggplot(data = alfonsino_cM_incCV10, aes(x = Mk.ratio, y = change.mean.percent,  shape=sens.run.name, colour=change.max.percent)) +
+  geom_vline(xintercept = 1.34, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(subtitle ="E",x = "M/K (mortality/growth) ratio", y = "% change in mean length from initial scenario",  shape = "Model run type",colour = expression("% change in maximum \nlength from initial scenario")) +
+  ggtitle(expression("High juvenile mortality & increasing CV"[t]))+
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8, 
+                                   limits = range(c(-125, 24)))+
+  scale_y_continuous( breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8), 
+        plot.subtitle = element_text(hjust = -0.05, vjust =1, size = 16, face = 'bold'),
+        strip.background = element_blank(),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size = 11, hjust = 0.5),
+        axis.title = element_text(size=15),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 4),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=12), 
+        legend.title = element_text(size=14), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_alfonsino, aes(x = standardised.M.K, y= -50),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_alfonsino, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+alfonsino_sens3
+
+```
+
+```{r alfonsino fM decCV}
+alfonsino_fM_decCV10 <- alfonsino_fM_decCV %>%  
+  filter(Linf==43.668) %>% 
+  mutate(sens.run.name = case_when(sens.run.name == "fM decCV" ~ "Sensitivity analysis run", 
+            sens.run.name == "original" ~ "Main model run"))
+
+alfonsino_sens4 <- ggplot(data = alfonsino_fM_decCV10, aes(x = Mk.ratio, y = change.mean.percent,  shape=sens.run.name, colour=change.max.percent)) +
+  geom_vline(xintercept = 1.34, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(subtitle ="B",x = "M/K (mortality/growth) ratio", y = "% change in mean length from initial scenario",  shape = "Model run type",colour = expression("% change in maximum \nlength from initial scenario")) +
+  ggtitle(expression("Fixed mortality & decreasing CV"[t]))+
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8, 
+                                   limits = range(c(-125, 24)))+
+  scale_y_continuous( breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8), 
+        plot.subtitle = element_text(hjust = -0.05, vjust =1, size = 16, face = 'bold'),
+        strip.background = element_blank(),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size = 11, hjust = 0.5),
+        axis.title = element_text(size=15),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 4),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=12), 
+        legend.title = element_text(size=14), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_alfonsino, aes(x = standardised.M.K, y= -50),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_alfonsino, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+alfonsino_sens4
+
+```
+
+```{r alfonsino fM incCV}
+alfonsino_fM_incCV10 <- alfonsino_fM_incCV %>%  
+  filter(Linf==43.668) %>% 
+  mutate(sens.run.name = case_when(sens.run.name == "fM incCV" ~ "Sensitivity analysis run", 
+            sens.run.name == "original" ~ "Main model run"))
+
+alfonsino_sens5 <- ggplot(data = alfonsino_fM_incCV10, aes(x = Mk.ratio, y = change.mean.percent,  shape=sens.run.name, colour=change.max.percent)) +
+  geom_vline(xintercept = 1.34, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(subtitle = "C", x = "M/K (mortality/growth) ratio", y = "% change in mean length from initial scenario",  shape = "Model run type",colour = expression("% change in maximum \nlength from initial scenario")) +
+  ggtitle(expression("Fixed mortality & increasing CV"[t]))+
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8, 
+                                   limits = range(c(-125, 24)))+
+  scale_y_continuous( breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8), 
+        strip.background = element_blank(),
+        plot.subtitle = element_text(hjust = -0.05, vjust =1, size = 16, face = 'bold'),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(),
+        plot.title = element_text(size = 11, hjust = 0.5),
+        axis.title = element_text(size=15),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 4),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=12), 
+        legend.title = element_text(size=14), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_alfonsino, aes(x = standardised.M.K, y= -50),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_alfonsino, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+alfonsino_sens5
+
+```
+
+
+```{r}
+panel <- (alfonsino_sens2+ guide_area()+alfonsino_sens4 + alfonsino_sens5 +alfonsino_sens1 + alfonsino_sens3)+
+  plot_layout(ncol=2,  axis_titles = "collect", guides = "collect")
+
+plot_path <- file.path(project_dir, "03_results","main_plots", "sens plots")
+
+ggsave("alfonsino_change_mean_SENS_Linf10_25dist.png",
+       plot = panel, 
+       path = plot_path, 
+       width = 19, height = 33, units = "cm")
+```
+
+# swordfish
+
+
+## swordfish set up data
+
+
+```{r swordfish load all data}
+rm(list=ls()) # clear workspace
+project_dir <- here::here()
+
+#raw data
+raw_data <- file.path(paste(project_dir, "0_data", "Prince_2023_MK_precise.csv", sep = "/"))
+mk <- read_csv(raw_data) #read in raw data
+mk_swordfish <- mk %>% filter(species == "Xiphias gladius")
+
+#original for comparison
+Linf25_swordfish <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linf_swordfish_25dist.csv", sep = "/"))
+swordfish_Linf25 <- read_csv(Linf25_swordfish)
+swordfish_Linf25$Linf <- factor(swordfish_Linf25$Linf) # make Linf25 discrete
+swordfish_Linf25 <- mutate(swordfish_Linf25, sens.run.name = "original")
+
+#load sens dfs
+fM_incCV_swordfish <- file.path(project_dir, 
+                                        "03_results",
+                                         "output3", 
+                                         "08_sim_output_Linf_fM_incCV_swordfish_25dist.csv")
+swordfish_fM_incCV <- read_csv(fM_incCV_swordfish)
+swordfish_fM_incCV$Linf <- factor(swordfish_fM_incCV$Linf) # make Linf discrete
+swordfish_fM_incCV <- rbind(swordfish_fM_incCV, swordfish_Linf25)
+
+fM_decCV_swordfish <- file.path(project_dir, 
+                                        "03_results",
+                                         "output3", 
+                                         "08_sim_output_Linf_fM_decCV_swordfish_25dist.csv")
+swordfish_fM_decCV <- read_csv(fM_decCV_swordfish)
+swordfish_fM_decCV$Linf <- factor(swordfish_fM_decCV$Linf) # make Linf discrete
+swordfish_fM_decCV <- rbind(swordfish_fM_decCV, swordfish_Linf25)
+
+cM_incCV_swordfish <- file.path(project_dir, 
+                                         "03_results",
+                                         "output3", 
+                                         "08_sim_output_Linf_cM_incCV_swordfish_25dist.csv")
+swordfish_cM_incCV <- read_csv(cM_incCV_swordfish)
+swordfish_cM_incCV$Linf <- factor(swordfish_cM_incCV$Linf) # make Linf discrete
+swordfish_cM_incCV <- swordfish_cM_incCV %>%
+  mutate(sens.run.name = case_when(
+    sens.run.name == "cM incCV" ~ "hjuvM incCV"))
+swordfish_cM_incCV <- rbind(swordfish_cM_incCV, swordfish_Linf25)
+
+cM_decCV_swordfish <- file.path(project_dir, 
+                                        "03_results",
+                                         "output3", 
+                                         "08_sim_output_Linf_cM_decCV_swordfish_25dist.csv")
+swordfish_cM_decCV <- read_csv(cM_decCV_swordfish)
+swordfish_cM_decCV$Linf <- factor(swordfish_cM_decCV$Linf) # make Linf discrete
+swordfish_cM_decCV <- swordfish_cM_decCV %>%
+  mutate(sens.run.name = case_when(
+    sens.run.name == "cM decCV" ~ "hjuvM decCV"))
+swordfish_cM_decCV <- rbind(swordfish_cM_decCV, swordfish_Linf25)
+
+cM_fCV_swordfish <- file.path(project_dir, 
+                                         "03_results",
+                                         "output3", 
+                                         "08_sim_output_Linf_cM_fCV_swordfish_25dist.csv")
+swordfish_cM_fCV <- read_csv(cM_fCV_swordfish)
+swordfish_cM_fCV$Linf <- factor(swordfish_cM_fCV$Linf) # make Linf discrete
+swordfish_cM_fCV <- swordfish_cM_fCV %>%
+  mutate(sens.run.name = case_when(
+    sens.run.name == "cM fCV" ~ "hjuvM fCV"))
+swordfish_cM_fCV <- rbind(swordfish_cM_fCV, swordfish_Linf25)
+
+## bind dfs
+swordfish_sens <- rbind(swordfish_fM_incCV,swordfish_fM_decCV, swordfish_cM_incCV, swordfish_cM_decCV, swordfish_cM_fCV, swordfish_Linf25 )
+
+swordfish_sens$sens.run.name<- factor(swordfish_sens$sens.run.name,levels=c("hjuvM decCV", "hjuvM incCV", "hjuvM fCV", "fM decCV", "fM incCV", "original"), ordered = TRUE)
+```
+
+```{r swordfish change in mean data}
+
+swordfish_sens10 <- swordfish_sens %>%  
+  filter(Linf==164.844)
+
+swordfish_sens20 <- swordfish_sens %>%  
+  filter(Linf==146.528)
+
+```
+
+```{r swordfish cM decCV}
+swordfish_cM_decCV10 <- swordfish_cM_decCV %>%  
+  filter(Linf==164.844) %>% 
+  mutate(sens.run.name = case_when(sens.run.name == "hjuvM decCV" ~ "Sensitivity analysis run", 
+            sens.run.name == "original" ~ "Main model run"))
+
+swordfish_sens1 <- ggplot(data = swordfish_cM_decCV10, aes(x = Mk.ratio, y = change.mean.percent, shape=sens.run.name, colour=change.max.percent)) +
+  geom_vline(xintercept = 1.1251, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(subtitle ="D", x = "M/K (mortality/growth) ratio", y = "% change in mean length from initial scenario",  shape = "Model run type",colour = expression("% change in maximum \nlength from initial scenario")) +
+  ggtitle(expression("High juvenile mortality & decreasing CV"[t]))+
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8, 
+                                   limits = range(c(-95 , 14)))+
+  scale_y_continuous( breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8),
+        plot.subtitle = element_text(hjust = -0.05, vjust =1, size = 16, face = 'bold'),
+        strip.background = element_blank(),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size = 11, hjust = 0.5),
+        axis.title = element_text(size=15),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 4),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=12), 
+        legend.title = element_text(size=14), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_swordfish, aes(x = standardised.M.K, y= -50),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_swordfish, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+swordfish_sens1
+
+```
+
+```{r swordfish cM fCV}
+swordfish_cM_fCV10 <- swordfish_cM_fCV %>%  
+  filter(Linf==164.844) %>% 
+  mutate(sens.run.name = case_when(sens.run.name == "hjuvM fCV" ~ "Sensitivity analysis run", 
+            sens.run.name == "original" ~ "Main model run"))
+
+swordfish_sens2 <- ggplot(data = swordfish_cM_fCV10, aes(x = Mk.ratio, y = change.mean.percent,  shape=sens.run.name, colour=change.max.percent)) +
+  geom_vline(xintercept = 1.1251, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(subtitle ="A",x = "M/K (mortality/growth) ratio", y = "% change in mean length from initial scenario",  shape = "Model run type",colour = expression("% change in maximum \nlength from initial scenario")) +
+  ggtitle(expression("High juvenile mortality & fixed CV"[t]))+
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8, 
+                                   limits = range(c(-95 , 14)))+
+  scale_y_continuous( breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8), 
+        plot.subtitle = element_text(hjust = -0.05, vjust =1, size = 16, face = 'bold'),
+        strip.background = element_blank(),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size = 11, hjust = 0.5),
+        axis.title = element_text(size=15),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 4),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=12), 
+        legend.title = element_text(size=14), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_swordfish, aes(x = standardised.M.K, y= -50),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_swordfish, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+swordfish_sens2
+
+```
+
+```{r swordfish cM incCV}
+swordfish_cM_incCV10 <- swordfish_cM_incCV %>%  
+  filter(Linf==164.844) %>% 
+  mutate(sens.run.name = case_when(sens.run.name == "hjuvM incCV" ~ "Sensitivity analysis run", 
+            sens.run.name == "original" ~ "Main model run"))
+
+swordfish_sens3 <- ggplot(data = swordfish_cM_incCV10, aes(x = Mk.ratio, y = change.mean.percent,  shape=sens.run.name, colour=change.max.percent)) +
+  geom_vline(xintercept = 1.1251, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(subtitle ="E",x = "M/K (mortality/growth) ratio", y = "% change in mean length from initial scenario",  shape = "Model run type",colour = expression("% change in maximum \nlength from initial scenario")) +
+  ggtitle(expression("High juvenile mortality & increasing CV"[t]))+
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8, 
+                                   limits = range(c(-95 , 14)))+
+  scale_y_continuous( breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8), 
+        plot.subtitle = element_text(hjust = -0.05, vjust =1, size = 16, face = 'bold'),
+        strip.background = element_blank(),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size = 11, hjust = 0.5),
+        axis.title = element_text(size=15),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 4),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=12), 
+        legend.title = element_text(size=14), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_swordfish, aes(x = standardised.M.K, y= -50),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_swordfish, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+swordfish_sens3
+
+```
+
+```{r swordfish fM decCV}
+swordfish_fM_decCV10 <- swordfish_fM_decCV %>%  
+  filter(Linf==164.844) %>% 
+  mutate(sens.run.name = case_when(sens.run.name == "fM decCV" ~ "Sensitivity analysis run", 
+            sens.run.name == "original" ~ "Main model run"))
+
+swordfish_sens4 <- ggplot(data = swordfish_fM_decCV10, aes(x = Mk.ratio, y = change.mean.percent,  shape=sens.run.name, colour=change.max.percent)) +
+  geom_vline(xintercept = 1.1251, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(subtitle ="B",x = "M/K (mortality/growth) ratio", y = "% change in mean length from initial scenario",  shape = "Model run type",colour = expression("% change in maximum \nlength from initial scenario")) +
+  ggtitle(expression("Fixed mortality & decreasing CV"[t]))+
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8, 
+                                   limits = range(c(-95 , 14)))+
+  scale_y_continuous( breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8), 
+        plot.subtitle = element_text(hjust = -0.05, vjust =1, size = 16, face = 'bold'),
+        strip.background = element_blank(),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size = 11, hjust = 0.5),
+        axis.title = element_text(size=15),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 4),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=12), 
+        legend.title = element_text(size=14), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_swordfish, aes(x = standardised.M.K, y= -50),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_swordfish, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+swordfish_sens4
+
+```
+
+```{r swordfish fM incCV}
+swordfish_fM_incCV10 <- swordfish_fM_incCV %>%  
+  filter(Linf==164.844) %>% 
+  mutate(sens.run.name = case_when(sens.run.name == "fM incCV" ~ "Sensitivity analysis run", 
+            sens.run.name == "original" ~ "Main model run"))
+
+swordfish_sens5 <- ggplot(data = swordfish_fM_incCV10, aes(x = Mk.ratio, y = change.mean.percent,  shape=sens.run.name, colour=change.max.percent)) +
+  geom_vline(xintercept = 1.1251, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(subtitle = "C", x = "M/K (mortality/growth) ratio", y = "% change in mean length from initial scenario",  shape = "Model run type",colour = expression("% change in maximum \nlength from initial scenario")) +
+  ggtitle(expression("Fixed mortality & increasing CV"[t]))+
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8, 
+                                   limits = range(c(-95 , 14)))+
+  scale_y_continuous( breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8), 
+        strip.background = element_blank(),
+        plot.subtitle = element_text(hjust = -0.05, vjust =1, size = 16, face = 'bold'),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(),
+        plot.title = element_text(size = 11, hjust = 0.5),
+        axis.title = element_text(size=15),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 4),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=12), 
+        legend.title = element_text(size=14), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_swordfish, aes(x = standardised.M.K, y= -50),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_swordfish, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+swordfish_sens5
+
+```
+
+
+```{r}
+panel <- (swordfish_sens2+ guide_area()+swordfish_sens4 + swordfish_sens5 +swordfish_sens1 + swordfish_sens3)+
+  plot_layout(ncol=2,  axis_titles = "collect", guides = "collect")
+
+plot_path <- file.path(project_dir, "03_results","main_plots", "sens plots")
+
+ggsave("swordfish_change_mean_SENS_Linf10_25dist.png",
+       plot = panel, 
+       path = plot_path, 
+       width = 19, height = 33, units = "cm")
+```
+
+# moonwrasse
+
+
+## moonwrasse set up data
+
+
+```{r moonwrasse load all data}
+rm(list=ls()) # clear workspace
+project_dir <- here::here()
+
+#raw data
+raw_data <- file.path(paste(project_dir, "0_data", "Prince_2023_MK_precise.csv", sep = "/"))
+mk <- read_csv(raw_data) #read in raw data
+mk_moonwrasse <- mk %>% filter(species == "Thalassoma lunare")
+
+#original for comparison
+Linf25_moonwrasse <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linf_moonwrasse_25dist.csv", sep = "/"))
+moonwrasse_Linf25 <- read_csv(Linf25_moonwrasse)
+moonwrasse_Linf25$Linf <- factor(moonwrasse_Linf25$Linf) # make Linf25 discrete
+moonwrasse_Linf25 <- mutate(moonwrasse_Linf25, sens.run.name = "original")
+
+#load sens dfs
+fM_incCV_moonwrasse <- file.path(project_dir, 
+                                         "03_results",
+                                         "output3", 
+                                         "08_sim_output_Linf_fM_incCV_moonwrasse_25dist.csv")
+moonwrasse_fM_incCV <- read_csv(fM_incCV_moonwrasse)
+moonwrasse_fM_incCV$Linf <- factor(moonwrasse_fM_incCV$Linf) # make Linf discrete
+moonwrasse_fM_incCV <- rbind(moonwrasse_fM_incCV, moonwrasse_Linf25)
+
+fM_decCV_moonwrasse <- file.path(project_dir, 
+                                        "03_results",
+                                         "output3", 
+                                         "08_sim_output_Linf_fM_decCV_moonwrasse_25dist.csv")
+moonwrasse_fM_decCV <- read_csv(fM_decCV_moonwrasse)
+moonwrasse_fM_decCV$Linf <- factor(moonwrasse_fM_decCV$Linf) # make Linf discrete
+moonwrasse_fM_decCV <- rbind(moonwrasse_fM_decCV, moonwrasse_Linf25)
+
+cM_incCV_moonwrasse <- file.path(project_dir, 
+                                        "03_results",
+                                         "output3", 
+                                         "08_sim_output_Linf_cM_incCV_moonwrasse_25dist.csv")
+moonwrasse_cM_incCV <- read_csv(cM_incCV_moonwrasse)
+moonwrasse_cM_incCV$Linf <- factor(moonwrasse_cM_incCV$Linf) # make Linf discrete
+moonwrasse_cM_incCV <- moonwrasse_cM_incCV %>%
+  mutate(sens.run.name = case_when(
+    sens.run.name == "cM incCV" ~ "hjuvM incCV"))
+moonwrasse_cM_incCV <- rbind(moonwrasse_cM_incCV, moonwrasse_Linf25)
+
+cM_decCV_moonwrasse <- file.path(project_dir, 
+                                        "03_results",
+                                         "output3", 
+                                         "08_sim_output_Linf_cM_decCV_moonwrasse_25dist.csv")
+moonwrasse_cM_decCV <- read_csv(cM_decCV_moonwrasse)
+moonwrasse_cM_decCV$Linf <- factor(moonwrasse_cM_decCV$Linf) # make Linf discrete
+moonwrasse_cM_decCV <- moonwrasse_cM_decCV %>%
+  mutate(sens.run.name = case_when(
+    sens.run.name == "cM decCV" ~ "hjuvM decCV"))
+moonwrasse_cM_decCV <- rbind(moonwrasse_cM_decCV, moonwrasse_Linf25)
+
+cM_fCV_moonwrasse <- file.path(project_dir, 
+                                         "03_results",
+                                         "output3", 
+                                         "08_sim_output_Linf_cM_fCV_moonwrasse_25dist.csv")
+moonwrasse_cM_fCV <- read_csv(cM_fCV_moonwrasse)
+moonwrasse_cM_fCV$Linf <- factor(moonwrasse_cM_fCV$Linf) # make Linf discrete
+moonwrasse_cM_fCV <- moonwrasse_cM_fCV %>%
+  mutate(sens.run.name = case_when(
+    sens.run.name == "cM fCV" ~ "hjuvM fCV"))
+moonwrasse_cM_fCV <- rbind(moonwrasse_cM_fCV, moonwrasse_Linf25)
+
+## bind dfs
+moonwrasse_sens <- rbind(moonwrasse_fM_incCV,moonwrasse_fM_decCV, moonwrasse_cM_incCV, moonwrasse_cM_decCV, moonwrasse_cM_fCV, moonwrasse_Linf25 )
+
+
+moonwrasse_sens$sens.run.name<- factor(moonwrasse_sens$sens.run.name,levels=c("hjuvM decCV", "hjuvM incCV", "hjuvM fCV", "fM decCV", "fM incCV", "original"), ordered = TRUE)
+```
+
+```{r moonwrasse change in mean data}
+
+moonwrasse_sens10 <- moonwrasse_sens %>%  
+  filter(Linf==12.69)
+
+moonwrasse_sens20 <- moonwrasse_sens %>%  
+  filter(Linf==11.28)
+
+```
+
+
+```{r moonwrasse cM decCV}
+moonwrasse_cM_decCV10 <- moonwrasse_cM_decCV %>%  
+  filter(Linf==12.69) %>% 
+  mutate(sens.run.name = case_when(sens.run.name == "hjuvM decCV" ~ "Sensitivity analysis run", 
+            sens.run.name == "original" ~ "Main model run"))
+
+moonwrasse_sens1 <- ggplot(data = moonwrasse_cM_decCV10, aes(x = Mk.ratio, y = change.mean.percent, shape=sens.run.name, colour=change.max.percent)) +
+  geom_vline(xintercept = 1.345, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(subtitle ="D", x = "M/K (mortality/growth) ratio", y = "% change in mean length from initial scenario",  shape = "Model run type",colour = expression("% change in maximum \nlength from initial scenario")) +
+  ggtitle(expression("High juvenile mortality & decreasing CV"[t]))+
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8, 
+                                   limits = range(c(-146 , 33)))+
+  scale_y_continuous( breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8),
+        plot.subtitle = element_text(hjust = -0.05, vjust =1, size = 16, face = 'bold'),
+        strip.background = element_blank(),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size = 11, hjust = 0.5),
+        axis.title = element_text(size=15),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 4),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=12), 
+        legend.title = element_text(size=14), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_moonwrasse, aes(x = standardised.M.K, y= -50),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_moonwrasse, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+moonwrasse_sens1
+
+```
+
+```{r moonwrasse cM fCV}
+moonwrasse_cM_fCV10 <- moonwrasse_cM_fCV %>%  
+  filter(Linf==12.69) %>% 
+  mutate(sens.run.name = case_when(sens.run.name == "hjuvM fCV" ~ "Sensitivity analysis run", 
+            sens.run.name == "original" ~ "Main model run"))
+
+moonwrasse_sens2 <- ggplot(data = moonwrasse_cM_fCV10, aes(x = Mk.ratio, y = change.mean.percent,  shape=sens.run.name, colour=change.max.percent)) +
+  geom_vline(xintercept = 1.345, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(subtitle ="A",x = "M/K (mortality/growth) ratio", y = "% change in mean length from initial scenario",  shape = "Model run type",colour = expression("% change in maximum \nlength from initial scenario")) +
+  ggtitle(expression("High juvenile mortality & fixed CV"[t]))+
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8, 
+                                   limits = range(c(-146 , 33)))+
+  scale_y_continuous( breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8), 
+        plot.subtitle = element_text(hjust = -0.05, vjust =1, size = 16, face = 'bold'),
+        strip.background = element_blank(),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size = 11, hjust = 0.5),
+        axis.title = element_text(size=15),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 4),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=12), 
+        legend.title = element_text(size=14), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_moonwrasse, aes(x = standardised.M.K, y= -50),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_moonwrasse, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+moonwrasse_sens2
+
+```
+
+```{r moonwrasse cM incCV}
+moonwrasse_cM_incCV10 <- moonwrasse_cM_incCV %>%  
+  filter(Linf==12.69) %>% 
+  mutate(sens.run.name = case_when(sens.run.name == "hjuvM incCV" ~ "Sensitivity analysis run", 
+            sens.run.name == "original" ~ "Main model run"))
+
+moonwrasse_sens3 <- ggplot(data = moonwrasse_cM_incCV10, aes(x = Mk.ratio, y = change.mean.percent,  shape=sens.run.name, colour=change.max.percent)) +
+  geom_vline(xintercept = 1.345, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(subtitle ="E",x = "M/K (mortality/growth) ratio", y = "% change in mean length from initial scenario",  shape = "Model run type",colour = expression("% change in maximum \nlength from initial scenario")) +
+  ggtitle(expression("High juvenile mortality & increasing CV"[t]))+
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8, 
+                                   limits = range(c(-146 , 33)))+
+  scale_y_continuous( breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8), 
+        plot.subtitle = element_text(hjust = -0.05, vjust =1, size = 16, face = 'bold'),
+        strip.background = element_blank(),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size = 11, hjust = 0.5),
+        axis.title = element_text(size=15),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 4),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=12), 
+        legend.title = element_text(size=14), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_moonwrasse, aes(x = standardised.M.K, y= -50),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_moonwrasse, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+moonwrasse_sens3
+
+```
+
+```{r moonwrasse fM decCV}
+moonwrasse_fM_decCV10 <- moonwrasse_fM_decCV %>%  
+  filter(Linf==12.69) %>% 
+  mutate(sens.run.name = case_when(sens.run.name == "fM decCV" ~ "Sensitivity analysis run", 
+            sens.run.name == "original" ~ "Main model run"))
+
+moonwrasse_sens4 <- ggplot(data = moonwrasse_fM_decCV10, aes(x = Mk.ratio, y = change.mean.percent,  shape=sens.run.name, colour=change.max.percent)) +
+  geom_vline(xintercept = 1.345, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(subtitle ="B",x = "M/K (mortality/growth) ratio", y = "% change in mean length from initial scenario",  shape = "Model run type",colour = expression("% change in maximum \nlength from initial scenario")) +
+  ggtitle(expression("Fixed mortality & decreasing CV"[t]))+
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8, 
+                                   limits = range(c(-146 , 33)))+
+  scale_y_continuous( breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8), 
+        plot.subtitle = element_text(hjust = -0.05, vjust =1, size = 16, face = 'bold'),
+        strip.background = element_blank(),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size = 11, hjust = 0.5),
+        axis.title = element_text(size=15),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 4),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=12), 
+        legend.title = element_text(size=14), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_moonwrasse, aes(x = standardised.M.K, y= -50),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_moonwrasse, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+moonwrasse_sens4
+
+```
+
+```{r moonwrasse fM incCV}
+moonwrasse_fM_incCV10 <- moonwrasse_fM_incCV %>%  
+  filter(Linf==12.69) %>% 
+  mutate(sens.run.name = case_when(sens.run.name == "fM incCV" ~ "Sensitivity analysis run", 
+            sens.run.name == "original" ~ "Main model run"))
+
+moonwrasse_sens5 <- ggplot(data = moonwrasse_fM_incCV10, aes(x = Mk.ratio, y = change.mean.percent,  shape=sens.run.name, colour=change.max.percent)) +
+  geom_vline(xintercept = 1.345, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(subtitle = "C", x = "M/K (mortality/growth) ratio", y = "% change in mean length from initial scenario",  shape = "Model run type",colour = expression("% change in maximum \nlength from initial scenario")) +
+  ggtitle(expression("Fixed mortality & increasing CV"[t]))+
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8, 
+                                   limits = range(c(-146 , 33)))+
+  scale_y_continuous( breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8), 
+        strip.background = element_blank(),
+        plot.subtitle = element_text(hjust = -0.05, vjust =1, size = 16, face = 'bold'),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(),
+        plot.title = element_text(size = 11, hjust = 0.5),
+        axis.title = element_text(size=15),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 4),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=12), 
+        legend.title = element_text(size=14), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_moonwrasse, aes(x = standardised.M.K, y= -50),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_moonwrasse, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+moonwrasse_sens5
+
+```
+
+
+```{r}
+panel <- (moonwrasse_sens2+ guide_area()+moonwrasse_sens4 + moonwrasse_sens5 +moonwrasse_sens1 + moonwrasse_sens3)+
+  plot_layout(ncol=2,  axis_titles = "collect", guides = "collect")
+
+plot_path <- file.path(project_dir,"03_results","main_plots", "sens plots")
+
+ggsave("moonwrasse_change_mean_SENS_Linf10_25dist.png",
+       plot = panel, 
+       path = plot_path, 
+       width = 19, height = 33, units = "cm")
+```
+
+
+
+

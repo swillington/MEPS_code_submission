@@ -1,0 +1,467 @@
+---
+title: "group sdist plots - Linf decrease"
+author: "Sarah Willington"
+date: "2024-04-08"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r libraries}
+library(tidyverse)
+library(patchwork)
+library(colorspace)
+library(here)
+```
+
+```{r set up file paths}
+rm(list=ls()) # clear workspace
+##NOTE for each run - update file paths 
+
+project.dir <- here::here()
+
+mk.plot.outpath1 <- file.path(paste(project.dir, 
+                                 "03_results", 
+                                 "output2", 
+                                 "sdist_swordfish_Linf10_grouped(absolute)_fulldist1.png", sep = "/"))
+mk.plot.outpath2 <- file.path(paste(project.dir, 
+                                "03_results",
+                                 "output2", 
+                                 "sdist_swordfish_Linf10_grouped(absolute)_fulldist2.png", sep = "/"))
+mk.plot.outpath3 <- file.path(paste(project.dir, 
+                                 "03_results", 
+                                 "output2", 
+                                 "sdist_swordfish_Linf20_grouped(absolute)_fulldist1.png", sep = "/"))
+mk.plot.outpath4 <- file.path(paste(project.dir, 
+                                 "03_results",
+                                 "output2", 
+                                 "sdist_swordfish_Linf20_grouped(absolute)_fulldist2.png", sep = "/"))
+mk.plot.outpath5 <- file.path(paste(project.dir, 
+                                "03_results",
+                                 "output2", 
+                                 "sdist_swordfish_Linf10_grouped(absolute)_fulldist.png", sep = "/"))
+mk.plot.outpath6 <- file.path(paste(project.dir, 
+                                "03_results", 
+                                 "output2", 
+                                 "sdist_swordfish_Linf20_grouped(absolute)_fulldist.png", sep = "/"))
+```
+
+```{r read in csv files}
+# Define directory containing CSV files
+directory <- file.path(project.dir, "03_results", "output2", "swordfish_sdist_csv")
+
+# List all CSV files in the directory
+files <- list.files(path = directory, pattern = "\\.csv$", full.names = TRUE)
+
+# Create a list to store the data frames
+df.list <- list()
+
+# Read files
+for (i in seq_along(files)) {
+  df.list[[i]] <- read_csv(files[i])
+}
+
+```
+
+#### get dataframes for plotting
+```{r group dfs and send to global environment}
+
+# Column to group by
+group_column <- "group.col" #group col to group dataframes by Linf and m/k ratio. This col is created in the ebSizeFreqEstimator function
+
+# Filter 10% linf alfonsino = 43.668, swordfish = 164.844, moonwrasse = 12.69
+linf10 <- lapply(df.list, function(df) {
+  filtered_df <- filter(df, L.infinity==164.844)
+  if (nrow(filtered_df) > 0) filtered_df else NULL
+})
+
+# Remove NULL elements from the list
+linf10 <- linf10[!sapply(linf10, is.null)]
+
+# Filter 20% linf alfonsino = 38.816, swordfish = 146.528, moonwrasse = 11.28
+linf20 <- lapply(df.list, function(df) {
+  filtered_df <- filter(df, L.infinity==146.528)
+  if (nrow(filtered_df) > 0) filtered_df else NULL
+})
+
+# Remove NULL elements from the list
+linf20 <- linf20[!sapply(linf20, is.null)]
+
+# Group data frames by the specified column
+grouped_dfs_linf10 <- linf10 %>%
+  bind_rows(.id = "df_id") %>%  # Bind data frames but create an ID col so can differentiate between dataframes
+  group_split(!!sym(group_column)) #split by the group_col (i.e. by Linf and m/k ratio)
+
+grouped_dfs_linf20 <- linf20 %>%
+  bind_rows(.id = "df_id") %>%  
+  group_split(!!sym(group_column)) 
+
+# function to add the grouped data frames to the global env so I can plot them
+add_dfs_to_global <- function(df_list, prefix = "df") {
+  for (i in seq_along(df_list)) {
+    var_name <- paste0(prefix, i)
+    assign(var_name, df_list[[i]], envir = .GlobalEnv)
+  }
+}
+
+# Use function
+add_dfs_to_global(grouped_dfs_linf10, prefix = "df_linf10")
+add_dfs_to_global(grouped_dfs_linf20, prefix = "df_linf20")
+
+#rm(df_linf1019) #remove dfs with 1 obs
+```
+
+```{r 25 and 66 trunc length}
+#alfonsino ####
+
+# 10 % linf
+lim25_10 <-0.25 * 43.668
+lim66_10 <-0.66 * 43.668
+
+# 20 % linf
+lim25_20 <-0.25 * 38.816
+lim66_20 <-0.66 * 38.816
+
+breaks <- 10
+
+# swordfish ####
+
+# 10 % linf
+lim25_10 <-0.25 * 164.844
+lim66_10 <-0.66 * 164.844
+
+# 20 % linf
+lim25_20 <-0.25 * 146.528
+lim66_20 <-0.66 * 146.528
+
+breaks <- 40
+
+# moonwrasse ####
+
+# 10 % linf
+lim25_10 <-0.25 * 12.69
+lim66_10 <-0.66 * 12.69
+
+# 20 % linf
+lim25_20 <-0.25 * 11.28
+lim66_20 <-0.66 * 11.28
+
+breaks <- 3
+```
+
+#### generate plots and add to list
+
+```{r create ggplot function}
+# colour palette for graphs
+cbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+# Function to create list of ggplots from the grouped data
+plot_grouped_dfs <- function(prefix = "df") {
+  plot_list <- list()
+  i <- 1
+  while (exists(paste0(prefix, i), envir = .GlobalEnv)) {
+    df_name <- paste0(prefix, i)
+    
+    # Generate legend_data 
+    legend_data <- get(df_name) %>%
+      group_by(df_id) %>%
+      summarize(M = first(round(M, 2)), K = first(round(K, 2)))
+    
+    # Create ggplot
+    p <- ggplot(get(df_name), aes(x = length, y = number, colour = df_id)) +
+      geom_rect(aes(xmin = 0, xmax = lim25_20, ymin = -Inf, ymax = Inf), fill = "grey70", alpha = 0.03, color = "transparent") + 
+      geom_rect(aes(xmin = lim25_20, xmax = lim66_20, ymin = -Inf, ymax = Inf), fill = "grey90", alpha = 0.03, color = "transparent") +
+      geom_line(linewidth=1) +
+      labs(x = "Length (cm)", y = "Relative number") +
+      #ggtitle(paste0("M/k ratio = ", get(df_name)$Mk.ratio, "\nLinfinity = ", get(df_name)$L.infinity)) +
+      ggtitle(paste0("M/k ratio = ", get(df_name)$Mk.ratio)) +
+      scale_x_continuous(breaks = seq(0, max(get(df_name)$length), by = breaks)) + #CHANGE BY FOR DIFFERENT SPECIES 
+      scale_color_manual(values = cbPalette, labels = paste("M=", legend_data$M, "K=", legend_data$K)) +
+      theme_classic() +
+      theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1, size=13),
+            axis.text.y = element_text(vjust = 0.5, hjust = 1, size=13),
+            axis.title.x = element_text( size = 20, margin = margin(t = 20)),
+            axis.title.y = element_text(size = 20, margin = margin(r = 20)),
+            plot.title = element_text(size = 16), 
+            legend.title = element_blank(), 
+            legend.text = element_text(size=14))
+    
+    plot_list[[i]] <- p  # Append the ggplot to the list
+    i <- i + 1
+  }
+  
+  return(plot_list)  # Return the list of ggplots
+}
+
+# Call the function and assign the result to a variable in the global environment
+ggplot_list_linf10 <- plot_grouped_dfs("df_linf10")
+ggplot_list_linf20 <- plot_grouped_dfs("df_linf20")
+
+```
+
+
+#### set up plotting 
+```{r split up the ggplot list}
+
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#FOR ALFONSINO AND MOONWRASSE
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+# Calculate the length for each smaller list (multiples of 3)
+halfway <- length(ggplot_list_linf10) / 2
+
+# Adjust lengths to be multiples of 3
+halfway1 <- halfway  +(halfway %% 3)
+halfway2 <- halfway - (halfway %% 3)
+
+
+first_half_linf10 <- ggplot_list_linf10[1:halfway1]
+second_half_linf10 <- ggplot_list_linf10[(halfway1 + 1):length(ggplot_list_linf10)]
+
+first_half_linf20 <- ggplot_list_linf20[1:halfway1]
+second_half_linf20 <- ggplot_list_linf20[(halfway1 + 1):length(ggplot_list_linf20)]
+
+```
+
+
+```{r swordfish split up the ggplot list}
+#@@@@@@@@@@@@@@@@@@@@
+#FOR SWORDFISH
+#@@@@@@@@@@@@@@@@@@@@
+
+first_half_linf10 <- ggplot_list_linf10[1:9]
+second_half_linf10 <- ggplot_list_linf10[10:length(ggplot_list_linf10)]
+
+first_half_linf20 <- ggplot_list_linf20[1:9]
+second_half_linf20 <- ggplot_list_linf20[10:length(ggplot_list_linf20)]
+```
+
+#### create grid plots and export
+
+```{r}
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#FOR ALFONSINO AND MOONWRASSE
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+# Function to arrange the ggplots in a grid
+plot_list_to_grid <- function(plot_list, ncol = 3, axis_titles= "collect", output_file = "output_grid.png") {
+  # Calculate the number of rows
+  nplots <- length(plot_list)
+  nrow <- ceiling(nplots / ncol)
+  
+  # Create the grid using the first plot
+  grid <- plot_list[[1]]
+  
+  # Add the remaining plots to the grid
+  for (i in 2:nplots) {
+    grid <- grid + plot_list[[i]]
+  }
+  
+  # Arrange the plots in the grid using patchwork and specify the number of columns
+  grid <- grid + plot_layout(ncol = ncol, axis_titles = axis_titles)
+    #plot_annotation(tag_levels = "A")
+  
+  # Save the grid as a PNG file
+  ggsave(output_file, grid, width = 15, height = 17)
+}
+
+# Call the function to arrange and save the first grid
+plot_list_to_grid(ggplot_list_linf10, ncol = 3, axis_titles = "collect", output_file = mk.plot.outpath5)
+plot_list_to_grid(ggplot_list_linf20, ncol = 3, axis_titles = "collect", output_file = mk.plot.outpath6)
+```
+
+```{r}
+#@@@@@@@@@@@@@@@@@@@@
+#FOR SWORDFISH
+#@@@@@@@@@@@@@@@@@@@@
+
+df_spacer <- data.frame(x=(NA), y=(NA))
+
+p <- ggplot(df_spacer, aes(x, y))+geom_line()+
+  labs(x = "Length (cm)", y = "Relative number") +
+  theme_classic()+
+  theme(axis.text = element_blank(), 
+        axis.ticks = element_blank(), 
+        axis.line = element_blank(), 
+        axis.title.x = element_text( size = 20, margin = margin(t = 20)),
+        axis.title.y = element_text(size = 20, margin = margin(r = 20)))
+
+# Function to arrange the ggplots in a grid
+plot_list_to_grid <- function(plot_list, ncol = 3, axis_titles= "collect", output_file = "output_grid.png") {
+  # Calculate the number of rows
+  nplots <- length(plot_list)
+  nrow <- ceiling(nplots / ncol)
+  
+  # Create the grid using the first plot
+  grid <- plot_list[[1]]
+  
+  # Add the remaining plots to the grid
+  for (i in 2:nplots) {
+    grid <- grid + plot_list[[i]]
+  }
+  
+  # Arrange the plots in the grid using patchwork and specify the number of columns
+  grid <- grid+p
+  grid <- grid + plot_layout(ncol = ncol, axis_titles = axis_titles)
+    #plot_annotation(tag_levels = "A")
+  
+  # Save the grid as a PNG file
+  ggsave(output_file, grid, width = 15, height = 15)
+}
+
+# Call the function to arrange and save the first grid
+plot_list_to_grid(ggplot_list_linf10, ncol = 3, axis_titles = "collect", output_file = mk.plot.outpath5)
+plot_list_to_grid(ggplot_list_linf20, ncol = 3, axis_titles = "collect", output_file = mk.plot.outpath6)
+
+```
+
+
+```{r export plots function first half}
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#FOR ALFONSINO AND MOONWRASSE
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+# Function to arrange the ggplots in a grid
+plot_list_to_grid <- function(plot_list, ncol = 3, axis_titles= "collect", output_file = "output_grid.png") {
+  # Calculate the number of rows
+  nplots <- length(plot_list)
+  nrow <- ceiling(nplots / ncol)
+  
+  # Create the grid using the first plot
+  grid <- plot_list[[1]]
+  
+  # Add the remaining plots to the grid
+  for (i in 2:nplots) {
+    grid <- grid + plot_list[[i]]
+  }
+  
+  # Arrange the plots in the grid using patchwork and specify the number of columns
+  grid <- grid + plot_layout(ncol = ncol, axis_titles = axis_titles)
+    #plot_annotation(tag_levels = "A")
+  
+  # Save the grid as a PNG file
+  ggsave(output_file, grid, width = 15, height = 10)
+}
+
+# Call the function to arrange and save the first grid
+plot_list_to_grid(first_half_linf10, ncol = 3, axis_titles = "collect", output_file = mk.plot.outpath1)
+plot_list_to_grid(first_half_linf20, ncol = 3, axis_titles = "collect", output_file = mk.plot.outpath3)
+
+```
+
+```{r export plots function second half}
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#FOR ALFONSINO AND MOONWRASSE
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+# Function to arrange the ggplots in a grid
+plot_list_to_grid <- function(plot_list, ncol = 3, axis_titles= "collect", output_file = "output_grid.png") {
+  # Calculate the number of rows
+  nplots <- length(plot_list)
+  nrow <- ceiling(nplots / ncol)
+  
+  # Create the grid using the first plot
+  grid <- plot_list[[1]]
+  
+  # Add the remaining plots to the grid
+  for (i in 2:nplots) {
+    grid <- grid + plot_list[[i]]
+  }
+  
+  # Arrange the plots in the grid using patchwork and specify the number of columns
+  #grid <- grid+p
+  grid <- grid + plot_layout(ncol = ncol, axis_titles = axis_titles)
+    #plot_annotation(tag_levels = "A")
+  
+  # Save the grid as a PNG file
+  ggsave(output_file, grid, width = 15, height = 8)
+}
+
+# Call the function to arrange and save the first grid
+plot_list_to_grid(second_half_linf10, ncol = 3, axis_titles = "collect", output_file = mk.plot.outpath2)
+plot_list_to_grid(second_half_linf20, ncol = 3, axis_titles = "collect", output_file = mk.plot.outpath4)
+
+```
+
+
+```{r swordfish export plots function first half}
+#@@@@@@@@@@@@@@@@@@@@
+#FOR SWORDFISH
+#@@@@@@@@@@@@@@@@@@@@
+
+# Function to arrange the ggplots in a grid
+plot_list_to_grid <- function(plot_list, ncol = 3, axis_titles= "collect", output_file = "output_grid.png") {
+  # Calculate the number of rows
+  nplots <- length(plot_list)
+  nrow <- ceiling(nplots / ncol)
+  
+  # Create the grid using the first plot
+  grid <- plot_list[[1]]
+  
+  # Add the remaining plots to the grid
+  for (i in 2:nplots) {
+    grid <- grid + plot_list[[i]]
+  }
+  
+  # Arrange the plots in the grid using patchwork and specify the number of columns
+  grid <- grid + plot_layout(ncol = ncol, axis_titles = axis_titles)
+    #plot_annotation(tag_levels = "A")
+  
+  # Save the grid as a PNG file
+  ggsave(output_file, grid, width = 15, height = 8)
+}
+
+# Call the function to arrange and save the first grid
+plot_list_to_grid(first_half_linf10, ncol = 3, axis_titles = "collect", output_file = mk.plot.outpath1)
+plot_list_to_grid(first_half_linf20, ncol = 3, axis_titles = "collect", output_file = mk.plot.outpath3)
+
+```
+
+```{r swordfish export plots function second half}
+#@@@@@@@@@@@@@@@@@@@@
+#FOR SWORDFISH
+#@@@@@@@@@@@@@@@@@@@@
+
+df_spacer <- data.frame(x=(NA), y=(NA))
+
+p <- ggplot(df_spacer, aes(x, y))+geom_line()+
+  labs(x = "Length (cm)", y = "Relative number") +
+  theme_classic()+
+  theme(axis.text = element_blank(), 
+        axis.ticks = element_blank(), 
+        axis.line = element_blank(), 
+        axis.title.x = element_text( size = 20, margin = margin(t = 20)),
+        axis.title.y = element_text(size = 20, margin = margin(r = 20)))
+
+# Function to arrange the ggplots in a grid
+plot_list_to_grid <- function(plot_list, ncol = 3, axis_titles= "collect", output_file = "output_grid.png") {
+  # Calculate the number of rows
+  nplots <- length(plot_list)
+  nrow <- ceiling(nplots / ncol)
+  
+  # Create the grid using the first plot
+  grid <- plot_list[[1]]
+  
+  # Add the remaining plots to the grid
+  for (i in 2:nplots) {
+    grid <- grid + plot_list[[i]]
+  }
+  
+  # Arrange the plots in the grid using patchwork and specify the number of columns
+  grid <- grid+p
+  grid <- grid + plot_layout(ncol = ncol, axis_titles = axis_titles)
+    #plot_annotation(tag_levels = "A")
+  
+  # Save the grid as a PNG file
+  ggsave(output_file, grid, width = 15, height = 8)
+}
+
+# Call the function to arrange and save the first grid
+plot_list_to_grid(second_half_linf10, ncol = 3, axis_titles = "collect", output_file = mk.plot.outpath2)
+plot_list_to_grid(second_half_linf20, ncol = 3, axis_titles = "collect", output_file = mk.plot.outpath4)
+
+```
+
+

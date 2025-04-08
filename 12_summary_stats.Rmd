@@ -1,0 +1,1374 @@
+---
+title: "08_summary_stats_updated"
+author: "Sarah Willington"
+date: "2024-10-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r libraries, include=FALSE}
+library(tidyverse)
+library(here)
+library(colorspace)
+library(patchwork)
+library(stringr)
+```
+
+
+```{r alfonsino load all data}
+project_dir <- here::here()
+
+raw_data <- file.path(paste(project_dir, "0_data", "Prince_2023_MK_precise.csv", sep = "/"))
+mk <- read_csv(raw_data) #read in raw data
+
+mk_alfonsino <- mk %>% filter(species == "Beryx splendens")
+summary(mk_alfonsino)
+
+#baseline - step 1
+baselinefull_alfonsino <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output1", 
+                                         "08_sim_output_baseline_alfonsino_fulldist.csv", sep = "/"))
+alfonsino_baselinefull <- read_csv(baselinefull_alfonsino)
+alfonsino_baselinefull$Linf <- factor(alfonsino_baselinefull$Linf) # make Linf discrete
+
+#increasing k
+baselinek_alfonsino <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output1", 
+                                         "08_sim_output_baselinek_alfonsino_fulldist.csv", sep = "/"))
+alfonsino_baselinek <- read_csv(baselinek_alfonsino)
+alfonsino_baselinek$Linf <- factor(alfonsino_baselinek$Linf) # make Linf discrete
+
+
+#truncated 25%
+baseline25_alfonsino <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output1", 
+                                         "08_sim_output_baseline_alfonsino_25dist.csv", sep = "/"))
+alfonsino_baseline25 <- read_csv(baseline25_alfonsino)
+alfonsino_baseline25$Linf <- factor(alfonsino_baseline25$Linf) # make Linf discrete
+
+baseline25k_alfonsino <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output1", 
+                                         "08_sim_output_baselinek_alfonsino_25dist.csv", sep = "/"))
+alfonsino_baseline25k <- read_csv(baseline25k_alfonsino)
+alfonsino_baseline25k$Linf <- factor(alfonsino_baseline25k$Linf) # make Linf discrete
+
+#truncated 66%
+baseline66_alfonsino <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output1", 
+                                         "08_sim_output_baseline_alfonsino_66dist.csv", sep = "/"))
+alfonsino_baseline66 <- read_csv(baseline66_alfonsino)
+alfonsino_baseline66$Linf <- factor(alfonsino_baseline66$Linf) # make Linf discrete
+
+baseline66k_alfonsino <- file.path(paste(project_dir, 
+                                        "03_results",
+                                         "output1", 
+                                         "08_sim_output_baselinek_alfonsino_66dist.csv", sep = "/"))
+alfonsino_baseline66k <- read_csv(baseline66k_alfonsino)
+alfonsino_baseline66k$Linf <- factor(alfonsino_baseline66k$Linf) # make Linf discrete
+
+# linf decrease - step 2
+Linffull_alfonsino <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linf_alfonsino_fulldist.csv", sep = "/"))
+alfonsino_Linffull <- read_csv(Linffull_alfonsino)
+alfonsino_Linffull$Linf <- factor(alfonsino_Linffull$Linf) # make Linf discrete
+
+#increasing k
+Linfk_alfonsino <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linfk_alfonsino_fulldist.csv", sep = "/"))
+alfonsino_Linfk <- read_csv(Linfk_alfonsino)
+alfonsino_Linfk$Linf <- factor(alfonsino_Linfk$Linf) # make Linfk discrete
+
+
+#truncated 25
+Linf25_alfonsino <- file.path(paste(project_dir, 
+                                        "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linf_alfonsino_25dist.csv", sep = "/"))
+alfonsino_Linf25 <- read_csv(Linf25_alfonsino)
+alfonsino_Linf25$Linf <- factor(alfonsino_Linf25$Linf) # make Linf25 discrete
+
+Linf25k_alfonsino <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linfk_alfonsino_25dist.csv", sep = "/"))
+alfonsino_Linf25k <- read_csv(Linf25k_alfonsino)
+alfonsino_Linf25k$Linf <- factor(alfonsino_Linf25k$Linf) # make Linfk discrete
+
+#truncated 66
+Linf66_alfonsino <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linf_alfonsino_66dist.csv", sep = "/"))
+alfonsino_Linf66 <- read_csv(Linf66_alfonsino)
+alfonsino_Linf66$Linf <- factor(alfonsino_Linf66$Linf) # make Linf66 discrete
+
+Linf66k_alfonsino <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linfk_alfonsino_66dist.csv", sep = "/"))
+alfonsino_Linf66k <- read_csv(Linf66k_alfonsino)
+alfonsino_Linf66k$Linf <- factor(alfonsino_Linf66k$Linf) # make Linfk discrete
+
+
+```
+
+```{r alfonsino combine data}
+alfonsino_baselinefull <- alfonsino_baselinefull %>% mutate(data.ID = "baseline")
+alfonsino_baseline25 <- alfonsino_baseline25 %>% mutate(data.ID = "baseline")
+alfonsino_baseline66 <- alfonsino_baseline66 %>% mutate(data.ID = "baseline")
+alfonsino_Linffull <- alfonsino_Linffull %>% mutate(data.ID = "Linf") 
+alfonsino_Linf25 <- alfonsino_Linf25 %>% mutate(data.ID = "Linf") 
+alfonsino_Linf66 <- alfonsino_Linf66 %>% mutate(data.ID = "Linf") 
+alfonsino_baselinek <- alfonsino_baselinek %>% mutate(data.ID = "baseline")
+alfonsino_baseline25k <- alfonsino_baseline25k %>% mutate(data.ID = "baseline")
+alfonsino_baseline66k <- alfonsino_baseline66k %>% mutate(data.ID = "baseline")
+alfonsino_Linfk <- alfonsino_Linfk %>% mutate(data.ID = "Linf") 
+alfonsino_Linf25k <- alfonsino_Linf25k %>% mutate(data.ID = "Linf")
+alfonsino_Linf66k <- alfonsino_Linf66k %>% mutate(data.ID = "Linf")
+
+alfonsino_alldatafull <- rbind(alfonsino_baselinefull, alfonsino_Linffull)
+alfonsino_alldatak <- rbind(alfonsino_baselinek, alfonsino_Linfk)
+alfonsino_alldata25k <- rbind(alfonsino_baseline25k, alfonsino_Linf25k)
+alfonsino_alldata66k <- rbind(alfonsino_baseline66k, alfonsino_Linf66k)
+alfonsino_alldata25 <- rbind(alfonsino_baseline25, alfonsino_Linf25)
+alfonsino_alldata66 <- rbind(alfonsino_baseline66, alfonsino_Linf66)
+
+alfonsino_alldatafull$data.ID <- factor(alfonsino_alldatafull$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+alfonsino_alldatak$data.ID <- factor(alfonsino_alldatak$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+alfonsino_alldata25k$data.ID <- factor(alfonsino_alldata25k$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+alfonsino_alldata66k$data.ID <- factor(alfonsino_alldata66k$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+alfonsino_alldata25$data.ID <- factor(alfonsino_alldata25$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+alfonsino_alldata66$data.ID <- factor(alfonsino_alldata66$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+
+
+```
+
+
+```{r alfonsino}
+alfonsino_summary_full <- alfonsino_alldatafull %>%
+  filter(scenario!="baseline") %>% 
+  filter(Mk.ratio<=2.2552316 &Mk.ratio >=0.6451768) %>% 
+  mutate(
+    sign_combination = case_when(
+      change.mean.percent > 0 & change.max.percent > 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768 ~ "Both increased",
+      change.mean.percent < 0 & change.max.percent < 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Both decreased",
+      change.mean.percent > 0 & change.max.percent < 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean increased, max decreased",
+      change.mean.percent < 0 & change.max.percent > 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean decreased, max increased",
+      change.mean.percent > 0 & change.max.percent == 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean increased, max no change",
+      change.mean.percent < 0 & change.max.percent == 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean decreased, max no change"), 
+    Linf = case_when(
+      Linf == 48.52 ~ "No change",
+      Linf == 38.816 ~ "20% decline",
+      Linf == 43.668 ~ "10% decline"), 
+    sdist = "Full")%>% 
+  drop_na(sign_combination)%>% 
+  group_by(Linf, sign_combination, sdist) %>%
+  summarise(change.percent = round((n() / 36) * 100, 2), change.number = n())
+
+alfonsino_summary_25 <- alfonsino_alldata25 %>%
+  filter(scenario!="baseline") %>%  
+  filter(Mk.ratio<=2.2552316 &Mk.ratio >=0.6451768) %>% 
+  mutate(
+    sign_combination = case_when(
+      change.mean.percent > 0 & change.max.percent > 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768 ~ "Both increased",
+      change.mean.percent < 0 & change.max.percent < 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Both decreased",
+      change.mean.percent > 0 & change.max.percent < 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean increased, max decreased",
+      change.mean.percent < 0 & change.max.percent > 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean decreased, max increased",
+      change.mean.percent > 0 & change.max.percent == 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean increased, max no change",
+      change.mean.percent < 0 & change.max.percent == 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean decreased, max no change"), 
+    Linf = case_when(
+      Linf == 48.52 ~ "No change",
+      Linf == 38.816 ~ "20% decline",
+      Linf == 43.668 ~ "10% decline"),
+    sdist = "25%") %>% 
+  drop_na(sign_combination)%>% 
+  group_by(Linf, sign_combination, sdist) %>%
+  summarise(change.percent = round((n() / 36) * 100, 2), change.number = n())
+
+alfonsino_summary_66 <- alfonsino_alldata66 %>%
+  filter(scenario!="baseline") %>%  
+  filter(Mk.ratio<=2.2552316 &Mk.ratio >=0.6451768) %>% 
+  mutate(
+    sign_combination = case_when(
+      change.mean.percent > 0 & change.max.percent > 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768 ~ "Both increased",
+      change.mean.percent < 0 & change.max.percent < 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Both decreased",
+      change.mean.percent > 0 & change.max.percent < 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean increased, max decreased",
+      change.mean.percent < 0 & change.max.percent > 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean decreased, max increased",
+      change.mean.percent > 0 & change.max.percent == 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean increased, max no change",
+      change.mean.percent < 0 & change.max.percent == 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean decreased, max no change"), 
+    Linf = case_when(
+      Linf == 48.52 ~ "No change",
+      Linf == 38.816 ~ "20% decline",
+      Linf == 43.668 ~ "10% decline"),
+    sdist = "66%")%>% 
+  drop_na(sign_combination)%>% 
+  group_by(Linf, sign_combination,sdist) %>%
+  summarise(change.percent = round((n() / 36) * 100, 2), change.number = n())
+
+alfonsino_summary <- rbind(alfonsino_summary_full, alfonsino_summary_25, alfonsino_summary_66)
+
+
+alfonsino_summary <- alfonsino_summary %>%
+  mutate(sign_combination = factor(sign_combination, ordered = TRUE,
+                                   levels = c("Mean increased, max no change", "Mean increased, max decreased" ,"Mean decreased, max no change","Both increased","Both decreased")),
+         Linf = factor(Linf, ordered = TRUE,
+                                   levels = c("No change", "10% decline", "20% decline")),
+         sdist = factor(sdist, ordered = TRUE,
+                                   levels = c("Full", "25%", "66%"))) %>%
+  #arrange(sign_combination) %>%
+  group_by(sdist,Linf) %>%
+  mutate(ylabel_pos = cumsum(change.number), ylabel=(change.number/sum(change.number))*100)
+
+cbPalette <- c("#D55E00","#56B4E9","#F0E442", "#E69F00", "#CC79A7",  "#009E73", "#0072B2", "#000000" )
+
+alfonsino_plot <- ggplot(alfonsino_summary, aes(sdist, change.number, fill = sign_combination)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = cbPalette) + 
+  facet_wrap(.~Linf)+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        axis.title.x = element_text(vjust = -1), 
+        axis.title.y = element_text(vjust = 2.5),
+        plot.margin = margin(t=10, r=10, l=10, b=10),
+        legend.title = element_text(margin = margin(b = 10)), 
+        #legend.spacing.y = unit(0.5, "cm"), 
+        legend.position = "bottom")+
+  guides(fill = guide_legend(nrow = 3)) +  
+  geom_text(aes(y = ylabel_pos,label = scales::percent(ylabel/100, accuracy = 0.1)), vjust = 1.35, size = 2.5) +
+  #geom_text(aes(y = ylabel_pos,label = change.number), vjust = 1.35, size = 5) +
+  labs(x = "Size distribution", y = "Number of M/k ratio scenarios", fill = "Change in mean and max \nsize from initial scenario") 
+
+alfonsino_plot 
+
+plot_path <- file.path(project_dir, "03_results",
+                             "main_plots")
+
+ggsave("alfonsino_summarystats.png",
+       plot = alfonsino_plot, 
+       path = plot_path, 
+       width = 15, height = 12, units = "cm", 
+       dpi = 300)
+
+```
+
+```{r alfonsino 2 panel}
+
+alfonsino_summary_full <- alfonsino_alldatafull %>%
+  filter(scenario!="baseline") %>% 
+  filter(Linf!=48.52) %>% 
+  filter(Mk.ratio<=2.2552316 &Mk.ratio >=0.6451768) %>% 
+  mutate(
+    sign_combination = case_when(
+      change.mean.percent > 0 & change.max.percent > 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768 ~ "Both increased",
+      change.mean.percent < 0 & change.max.percent < 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Both decreased",
+      change.mean.percent > 0 & change.max.percent < 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean increased, max decreased",
+      change.mean.percent < 0 & change.max.percent > 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean decreased, max increased",
+      change.mean.percent > 0 & change.max.percent == 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean increased, max no change",
+      change.mean.percent < 0 & change.max.percent == 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean decreased, max no change"), 
+    Linf = case_when(
+      Linf == 38.816 ~ "20% decline",
+      Linf == 43.668 ~ "10% decline"), 
+    sdist = "Full")%>% 
+  drop_na(sign_combination)%>% 
+  group_by(Linf, sign_combination, sdist) %>%
+  summarise(change.percent = round((n() / 22) * 100, 2), change.number = n())
+
+alfonsino_summary_25 <- alfonsino_alldata25 %>%
+  filter(scenario!="baseline") %>% 
+  filter(Linf!=48.52) %>% 
+  filter(Mk.ratio<=2.2552316 &Mk.ratio >=0.6451768) %>% 
+  mutate(
+    sign_combination = case_when(
+      change.mean.percent > 0 & change.max.percent > 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768 ~ "Both increased",
+      change.mean.percent < 0 & change.max.percent < 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Both decreased",
+      change.mean.percent > 0 & change.max.percent < 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean increased, max decreased",
+      change.mean.percent < 0 & change.max.percent > 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean decreased, max increased",
+      change.mean.percent > 0 & change.max.percent == 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean increased, max no change",
+      change.mean.percent < 0 & change.max.percent == 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean decreased, max no change"), 
+    Linf = case_when(
+      Linf == 38.816 ~ "20% decline",
+      Linf == 43.668 ~ "10% decline"),
+    sdist = "25%") %>% 
+  drop_na(sign_combination)%>% 
+  group_by(Linf, sign_combination, sdist) %>%
+  summarise(change.percent = round((n() / 22) * 100, 2), change.number = n())
+
+alfonsino_summary_66 <- alfonsino_alldata66 %>%
+  filter(scenario!="baseline") %>% 
+  filter(Linf!=48.52) %>% 
+  filter(Mk.ratio<=2.2552316 &Mk.ratio >=0.6451768) %>% 
+  mutate(
+    sign_combination = case_when(
+      change.mean.percent > 0 & change.max.percent > 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768 ~ "Both increased",
+      change.mean.percent < 0 & change.max.percent < 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Both decreased",
+      change.mean.percent > 0 & change.max.percent < 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean increased, max decreased",
+      change.mean.percent < 0 & change.max.percent > 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean decreased, max increased",
+      change.mean.percent > 0 & change.max.percent == 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean increased, max no change",
+      change.mean.percent < 0 & change.max.percent == 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean decreased, max no change"), 
+    Linf = case_when(
+      Linf == 38.816 ~ "20% decline",
+      Linf == 43.668 ~ "10% decline"),
+    sdist = "66%")%>% 
+  drop_na(sign_combination)%>% 
+  group_by(Linf, sign_combination,sdist) %>%
+  summarise(change.percent = round((n() / 22) * 100, 2), change.number = n())
+
+alfonsino_summary <- rbind(alfonsino_summary_full, alfonsino_summary_25, alfonsino_summary_66)
+
+
+alfonsino_summary <- alfonsino_summary %>%
+  mutate(sign_combination = factor(sign_combination, ordered = TRUE,
+                                   levels = c("Mean increased, max no change", "Mean increased, max decreased" ,"Mean decreased, max no change","Both increased","Both decreased")),
+         Linf = factor(Linf, ordered = TRUE,
+                                   levels = c("10% decline", "20% decline")),
+         sdist = factor(sdist, ordered = TRUE,
+                                   levels = c("Full", "25%", "66%"))) %>%
+  #arrange(sign_combination) %>%
+  group_by(sdist,Linf) %>%
+  mutate(ylabel_pos = cumsum(change.number), ylabel=(change.number/sum(change.number))*100)
+
+cbPalette <- c("#56B4E9","#F0E442", "#E69F00", "#CC79A7", "#D55E00", "#009E73", "#0072B2", "#000000" )
+
+alfonsino_plot <- ggplot(alfonsino_summary, aes(sdist, change.number, fill = sign_combination)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = cbPalette, 
+                    labels = function(labels) str_replace_all(labels, ",", ",\n")) + 
+  facet_wrap(.~Linf)+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        axis.title.x = element_text(vjust = -1), 
+        axis.title.y = element_text(vjust = 2.5),
+        plot.margin = margin(t=10, r=10, l=10, b=10),
+        legend.title = element_blank(), 
+        legend.key.height = unit(1.2, "cm"), 
+        legend.text = element_text(lineheight = 1.1)
+        )+
+  geom_text(aes(y = ylabel_pos,label = scales::percent(ylabel/100, accuracy = 1)), vjust = 1.35, size = 2.5) +
+  labs(x = "Size distribution", y = "Number of M/K ratio scenarios", fill = "Change in mean and max \nsize from initial scenario") 
+
+alfonsino_plot 
+
+plot_path <- file.path(project_dir, "03_results",
+                             "main_plots")
+
+ggsave("alfonsino_summarystats.png",
+       plot = alfonsino_plot, 
+       path = plot_path, 
+       width = 15, height = 10, units = "cm", 
+       dpi = 300)
+
+```
+
+```{r alfonsino 1 panel}
+alfonsino_summary_full <- alfonsino_alldatafull %>%
+  filter(scenario!="baseline") %>% 
+  filter(Mk.ratio<=2.2552316 &Mk.ratio >=0.6451768) %>% 
+  mutate(
+    sign_combination = case_when(
+      change.mean.percent > 0 & change.max.percent > 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768 ~ "Both increased",
+      change.mean.percent < 0 & change.max.percent < 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Both decreased",
+      change.mean.percent > 0 & change.max.percent < 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean increased, max decreased",
+      change.mean.percent < 0 & change.max.percent > 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean decreased, max increased",
+      change.mean.percent > 0 & change.max.percent == 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean increased, max no change",
+      change.mean.percent < 0 & change.max.percent == 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean decreased, max no change"), 
+    Linf = case_when(
+      Linf == 48.52 ~ "No change",
+      Linf == 38.816 ~ "20% decline",
+      Linf == 43.668 ~ "10% decline"), 
+    sdist = "Full")%>% 
+  drop_na(sign_combination)%>% 
+  group_by(Linf, sign_combination, sdist) %>%
+  summarise(change.percent = round((n() / 36) * 100, 2), change.number = n())
+
+alfonsino_summary_25 <- alfonsino_alldata25 %>%
+  filter(scenario!="baseline") %>%  
+  filter(Mk.ratio<=2.2552316 &Mk.ratio >=0.6451768) %>% 
+  mutate(
+    sign_combination = case_when(
+      change.mean.percent > 0 & change.max.percent > 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768 ~ "Both increased",
+      change.mean.percent < 0 & change.max.percent < 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Both decreased",
+      change.mean.percent > 0 & change.max.percent < 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean increased, max decreased",
+      change.mean.percent < 0 & change.max.percent > 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean decreased, max increased",
+      change.mean.percent > 0 & change.max.percent == 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean increased, max no change",
+      change.mean.percent < 0 & change.max.percent == 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean decreased, max no change"), 
+    Linf = case_when(
+      Linf == 48.52 ~ "No change",
+      Linf == 38.816 ~ "20% decline",
+      Linf == 43.668 ~ "10% decline"),
+    sdist = "25%") %>% 
+  drop_na(sign_combination)%>% 
+  group_by(Linf, sign_combination, sdist) %>%
+  summarise(change.percent = round((n() / 36) * 100, 2), change.number = n())
+
+alfonsino_summary_66 <- alfonsino_alldata66 %>%
+  filter(scenario!="baseline") %>%  
+  filter(Mk.ratio<=2.2552316 &Mk.ratio >=0.6451768) %>% 
+  mutate(
+    sign_combination = case_when(
+      change.mean.percent > 0 & change.max.percent > 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768 ~ "Both increased",
+      change.mean.percent < 0 & change.max.percent < 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Both decreased",
+      change.mean.percent > 0 & change.max.percent < 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean increased, max decreased",
+      change.mean.percent < 0 & change.max.percent > 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean decreased, max increased",
+      change.mean.percent > 0 & change.max.percent == 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean increased, max no change",
+      change.mean.percent < 0 & change.max.percent == 0 & Mk.ratio<2.2552316 &Mk.ratio >0.6451768~ "Mean decreased, max no change"), 
+    Linf = case_when(
+      Linf == 48.52 ~ "No change",
+      Linf == 38.816 ~ "20% decline",
+      Linf == 43.668 ~ "10% decline"),
+    sdist = "66%")%>% 
+  drop_na(sign_combination)%>% 
+  group_by(Linf, sign_combination,sdist) %>%
+  summarise(change.percent = round((n() / 36) * 100, 2), change.number = n())
+
+alfonsino_summary <- rbind(alfonsino_summary_full, alfonsino_summary_25, alfonsino_summary_66)
+alfonsino_summary <- alfonsino_summary %>% filter(Linf=="No change")
+
+
+alfonsino_summary <- alfonsino_summary %>%
+  mutate(sign_combination = factor(sign_combination, ordered = TRUE,
+                                   levels = c("Mean increased, max no change", "Mean increased, max decreased" ,"Mean decreased, max no change","Both increased","Both decreased")),
+         sdist = factor(sdist, ordered = TRUE,
+                                   levels = c("Full", "25%", "66%"))) %>%
+  #arrange(sign_combination) %>%
+  group_by(sdist,Linf) %>%
+  mutate(ylabel_pos = cumsum(change.number), ylabel=(change.number/sum(change.number))*100)
+
+cbPalette <- c("#56B4E9","#F0E442", "#E69F00", "#009E73", "#CC79A7", "#D55E00", "#0072B2", "#000000" )
+
+alfonsino_plot <- ggplot(alfonsino_summary, aes(sdist, change.number, fill = sign_combination)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = cbPalette, 
+                    labels = function(labels) str_replace_all(labels, ",", ",\n")) + 
+  theme_classic()+
+  theme(panel.grid = element_blank(),
+        axis.title.x = element_text(vjust = -1), 
+        axis.title.y = element_text(vjust = 2.5),
+        plot.margin = margin(t=10, r=10, l=10, b=10),
+        legend.title = element_blank(), 
+        legend.key.height = unit(1.2, "cm"), 
+        legend.text = element_text(lineheight = 1.1),
+        axis.line = element_line(linewidth = 0.3)
+        )+
+  geom_text(aes(y = ylabel_pos,label = scales::percent(ylabel/100, accuracy = 1)), vjust = 1.35, size = 2.5) +
+  labs(x = "Size distribution", y = "Number of M/K ratio scenarios", fill = "Change in mean and max \nsize from initial scenario") 
+
+alfonsino_plot 
+
+plot_path <- file.path(project_dir, "03_results",
+                             "main_plots")
+
+ggsave("alfonsino_summarystats_BASELINE.png",
+       plot = alfonsino_plot, 
+       path = plot_path, 
+       width = 15, height = 12, units = "cm", 
+       dpi = 300)
+```
+
+
+# SWORDFISH
+```{r swordfish load all data}
+rm(list=ls()) # clear workspace
+project_dir <- here::here()
+
+raw_data <- file.path(paste(project_dir, "0_data", "Prince_2023_MK_precise.csv", sep = "/"))
+mk <- read_csv(raw_data) #read in raw data
+
+mk_swordfish <- mk %>% filter(species == "Xiphias gladius")
+summary(mk_swordfish)
+
+#baseline - step 1
+baselinefull_swordfish <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output1", 
+                                         "08_sim_output_baseline_swordfish_fulldist.csv", sep = "/"))
+swordfish_baselinefull <- read_csv(baselinefull_swordfish)
+swordfish_baselinefull$Linf <- factor(swordfish_baselinefull$Linf) # make Linf discrete
+
+#increasing k
+baselinek_swordfish <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output1", 
+                                         "08_sim_output_baselinek_swordfish_fulldist.csv", sep = "/"))
+swordfish_baselinek <- read_csv(baselinek_swordfish)
+swordfish_baselinek$Linf <- factor(swordfish_baselinek$Linf) # make Linf discrete
+
+
+#truncated 25%
+baseline25_swordfish <- file.path(paste(project_dir, 
+                                        "03_results",
+                                         "output1", 
+                                         "08_sim_output_baseline_swordfish_25dist.csv", sep = "/"))
+swordfish_baseline25 <- read_csv(baseline25_swordfish)
+swordfish_baseline25$Linf <- factor(swordfish_baseline25$Linf) # make Linf discrete
+
+baseline25k_swordfish <- file.path(paste(project_dir, 
+                                        "03_results",
+                                         "output1", 
+                                         "08_sim_output_baselinek_swordfish_25dist.csv", sep = "/"))
+swordfish_baseline25k <- read_csv(baseline25k_swordfish)
+swordfish_baseline25k$Linf <- factor(swordfish_baseline25k$Linf) # make Linf discrete
+
+#truncated 66%
+baseline66_swordfish <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output1", 
+                                         "08_sim_output_baseline_swordfish_66dist.csv", sep = "/"))
+swordfish_baseline66 <- read_csv(baseline66_swordfish)
+swordfish_baseline66$Linf <- factor(swordfish_baseline66$Linf) # make Linf discrete
+
+baseline66k_swordfish <- file.path(paste(project_dir, 
+                                        "03_results",
+                                         "output1", 
+                                         "08_sim_output_baselinek_swordfish_66dist.csv", sep = "/"))
+swordfish_baseline66k <- read_csv(baseline66k_swordfish)
+swordfish_baseline66k$Linf <- factor(swordfish_baseline66k$Linf) # make Linf discrete
+
+# linf decrease - step 2
+Linffull_swordfish <- file.path(paste(project_dir, 
+                                        "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linf_swordfish_fulldist.csv", sep = "/"))
+swordfish_Linffull <- read_csv(Linffull_swordfish)
+swordfish_Linffull$Linf <- factor(swordfish_Linffull$Linf) # make Linf discrete
+
+#increasing k
+Linfk_swordfish <- file.path(paste(project_dir, 
+                                        "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linfk_swordfish_fulldist.csv", sep = "/"))
+swordfish_Linfk <- read_csv(Linfk_swordfish)
+swordfish_Linfk$Linf <- factor(swordfish_Linfk$Linf) # make Linfk discrete
+
+
+#truncated 25
+Linf25_swordfish <- file.path(paste(project_dir, 
+                                        "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linf_swordfish_25dist.csv", sep = "/"))
+swordfish_Linf25 <- read_csv(Linf25_swordfish)
+swordfish_Linf25$Linf <- factor(swordfish_Linf25$Linf) # make Linf25 discrete
+
+Linf25k_swordfish <- file.path(paste(project_dir, 
+                                        "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linfk_swordfish_25dist.csv", sep = "/"))
+swordfish_Linf25k <- read_csv(Linf25k_swordfish)
+swordfish_Linf25k$Linf <- factor(swordfish_Linf25k$Linf) # make Linfk discrete
+
+#truncated 66
+Linf66_swordfish <- file.path(paste(project_dir, 
+                                        "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linf_swordfish_66dist.csv", sep = "/"))
+swordfish_Linf66 <- read_csv(Linf66_swordfish)
+swordfish_Linf66$Linf <- factor(swordfish_Linf66$Linf) # make Linf66 discrete
+
+Linf66k_swordfish <- file.path(paste(project_dir, 
+                                        "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linfk_swordfish_66dist.csv", sep = "/"))
+swordfish_Linf66k <- read_csv(Linf66k_swordfish)
+swordfish_Linf66k$Linf <- factor(swordfish_Linf66k$Linf) # make Linfk discrete
+
+
+```
+
+```{r swordfish combine data}
+swordfish_baselinefull <- swordfish_baselinefull %>% mutate(data.ID = "baseline")
+swordfish_baseline25 <- swordfish_baseline25 %>% mutate(data.ID = "baseline")
+swordfish_baseline66 <- swordfish_baseline66 %>% mutate(data.ID = "baseline")
+swordfish_Linffull <- swordfish_Linffull %>% mutate(data.ID = "Linf") 
+swordfish_Linf25 <- swordfish_Linf25 %>% mutate(data.ID = "Linf") 
+swordfish_Linf66 <- swordfish_Linf66 %>% mutate(data.ID = "Linf") 
+swordfish_baselinek <- swordfish_baselinek %>% mutate(data.ID = "baseline")
+swordfish_baseline25k <- swordfish_baseline25k %>% mutate(data.ID = "baseline")
+swordfish_baseline66k <- swordfish_baseline66k %>% mutate(data.ID = "baseline")
+swordfish_Linfk <- swordfish_Linfk %>% mutate(data.ID = "Linf") 
+swordfish_Linf25k <- swordfish_Linf25k %>% mutate(data.ID = "Linf")
+swordfish_Linf66k <- swordfish_Linf66k %>% mutate(data.ID = "Linf")
+
+swordfish_alldatafull <- rbind(swordfish_baselinefull, swordfish_Linffull)
+swordfish_alldatak <- rbind(swordfish_baselinek, swordfish_Linfk)
+swordfish_alldata25k <- rbind(swordfish_baseline25k, swordfish_Linf25k)
+swordfish_alldata66k <- rbind(swordfish_baseline66k, swordfish_Linf66k)
+swordfish_alldata25 <- rbind(swordfish_baseline25, swordfish_Linf25)
+swordfish_alldata66 <- rbind(swordfish_baseline66, swordfish_Linf66)
+
+swordfish_alldatafull$data.ID <- factor(swordfish_alldatafull$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+swordfish_alldatak$data.ID <- factor(swordfish_alldatak$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+swordfish_alldata25k$data.ID <- factor(swordfish_alldata25k$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+swordfish_alldata66k$data.ID <- factor(swordfish_alldata66k$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+swordfish_alldata25$data.ID <- factor(swordfish_alldata25$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+swordfish_alldata66$data.ID <- factor(swordfish_alldata66$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+
+
+```
+
+
+```{r swordfish plot}
+swordfish_summary_full <- swordfish_alldatafull %>%
+  filter(scenario!="baseline") %>% 
+  mutate(
+    sign_combination = case_when(
+      change.mean.percent > 0 & change.max.percent > 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Both increased",
+      change.mean.percent < 0 & change.max.percent < 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Both decreased",
+      change.mean.percent > 0 & change.max.percent < 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean increased, max decreased",
+      change.mean.percent < 0 & change.max.percent > 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean decreased, max increased", 
+      change.mean.percent < 0 & change.max.percent == 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean decreased, max no change", 
+      change.mean.percent > 0 & change.max.percent == 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean increased, max no change"), 
+    Linf = case_when(
+      Linf == 183.16 ~ "No change",
+      Linf == 146.528 ~ "20% decline",
+      Linf == 164.844 ~ "10% decline"),
+    sdist = "Full") %>% 
+  drop_na(sign_combination)%>% 
+  group_by(Linf, sign_combination, sdist) %>%
+  summarise(change.percent = round((n() / 36) * 100, 2), change.number = n())
+
+swordfish_summary_25 <- swordfish_alldata25 %>%
+  filter(scenario!="baseline") %>% 
+  mutate(
+    sign_combination = case_when(
+      change.mean.percent > 0 & change.max.percent > 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Both increased",
+      change.mean.percent < 0 & change.max.percent < 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Both decreased",
+      change.mean.percent > 0 & change.max.percent < 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean increased, max decreased",
+      change.mean.percent < 0 & change.max.percent > 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean decreased, max increased", 
+      change.mean.percent < 0 & change.max.percent == 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean decreased, max no change", 
+      change.mean.percent > 0 & change.max.percent == 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean increased, max no change"), 
+    Linf = case_when(
+     Linf == 183.16 ~ "No change",
+      Linf == 146.528 ~ "20% decline",
+      Linf == 164.844 ~ "10% decline"),
+    sdist = "25%") %>% 
+  drop_na(sign_combination)%>% 
+  group_by(Linf, sign_combination, sdist) %>%
+  summarise(change.percent = round((n() / 36) * 100, 2), change.number = n())
+
+swordfish_summary_66 <- swordfish_alldata66 %>%
+  filter(scenario!="baseline") %>% 
+  mutate(
+    sign_combination = case_when(
+      change.mean.percent > 0 & change.max.percent > 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Both increased",
+      change.mean.percent < 0 & change.max.percent < 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Both decreased",
+      change.mean.percent > 0 & change.max.percent < 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean increased, max decreased",
+      change.mean.percent < 0 & change.max.percent > 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean decreased, max increased", 
+      change.mean.percent < 0 & change.max.percent == 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean decreased, max no change", 
+      change.mean.percent > 0 & change.max.percent == 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean increased, max no change"), 
+    Linf = case_when(
+      Linf == 183.16 ~ "No change",
+      Linf == 146.528 ~ "20% decline",
+      Linf == 164.844 ~ "10% decline"),
+    sdist = "66%") %>% 
+  drop_na(sign_combination)%>% 
+  group_by(Linf, sign_combination,sdist) %>%
+  summarise(change.percent = round((n() / 36) * 100, 2), change.number = n())
+
+swordfish_summary <- rbind(swordfish_summary_full, swordfish_summary_25, swordfish_summary_66)
+
+
+swordfish_summary <- swordfish_summary %>%
+  mutate(sign_combination = factor(sign_combination, ordered = TRUE,
+                                   levels = c("Mean increased, max decreased", "Mean decreased, max increased",  "Both increased","Both decreased")),
+         Linf = factor(Linf, ordered = TRUE,
+                                   levels = c("No change", "10% decline", "20% decline")),
+         sdist = factor(sdist, ordered = TRUE,
+                                   levels = c("Full", "25%", "66%"))) %>%
+  #arrange(sign_combination) %>%
+  group_by(sdist,Linf) %>%
+ mutate(ylabel_pos = cumsum(change.number), ylabel=(change.number/sum(change.number))*100)
+
+cbPalette <- c(  "#56B4E9","#009E73", "#E69F00","#CC79A7", "#F0E442", "#0072B2", "#D55E00","#000000" )
+
+swordfish_plot <- ggplot(swordfish_summary, aes(sdist, change.number, fill = sign_combination)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = cbPalette) + 
+  facet_wrap(.~Linf)+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        axis.title.x = element_text(vjust = -1), 
+        axis.title.y = element_text(vjust = 2.5),
+        plot.margin = margin(t=10, r=10, l=10, b=10),
+        legend.title = element_text(margin = margin(b = 10)), 
+        legend.spacing.y = unit(0.5, "cm"), 
+        legend.position = "bottom")+
+  guides(fill = guide_legend(nrow = 2)) +  
+  geom_text(aes(y = ylabel_pos,label = scales::percent(ylabel/100, accuracy = 0.1)), vjust = 1.35, size = 2.5) +
+  #geom_text(aes(y = ylabel_pos,label = change.number), vjust = 1.35, size = 5) +
+  labs(x = "Size distribution", y = "Number of M/k ratio scenarios", fill = "Change in mean and max \nsize from initial scenario") 
+
+swordfish_plot 
+
+plot_path <- file.path(project_dir, "03_results",
+                             "main_plots")
+
+ggsave("swordfish_summarystats.png",
+       plot = swordfish_plot, 
+       path = plot_path, 
+       width = 15, height = 12, units = "cm", 
+       dpi = 300)
+```
+
+```{r swordfish 2 panel}
+swordfish_summary_full <- swordfish_alldatafull %>%
+  filter(scenario!="baseline") %>% 
+  filter(Linf!= 183.16) %>% 
+  mutate(
+    sign_combination = case_when(
+      change.mean.percent > 0 & change.max.percent > 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Both increased",
+      change.mean.percent < 0 & change.max.percent < 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Both decreased",
+      change.mean.percent > 0 & change.max.percent < 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean increased, max decreased",
+      change.mean.percent < 0 & change.max.percent > 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean decreased, max increased", 
+      change.mean.percent < 0 & change.max.percent == 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean decreased, max no change", 
+      change.mean.percent > 0 & change.max.percent == 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean increased, max no change"), 
+    Linf = case_when(
+      Linf == 146.528 ~ "20% decline",
+      Linf == 164.844 ~ "10% decline"),
+    sdist = "Full") %>% 
+  drop_na(sign_combination)%>% 
+  group_by(Linf, sign_combination, sdist) %>%
+  summarise(change.percent = round((n() / 22) * 100, 2), change.number = n())
+
+swordfish_summary_25 <- swordfish_alldata25 %>%
+  filter(scenario!="baseline") %>% 
+  filter(Linf!= 183.16) %>% 
+  mutate(
+    sign_combination = case_when(
+      change.mean.percent > 0 & change.max.percent > 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Both increased",
+      change.mean.percent < 0 & change.max.percent < 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Both decreased",
+      change.mean.percent > 0 & change.max.percent < 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean increased, max decreased",
+      change.mean.percent < 0 & change.max.percent > 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean decreased, max increased", 
+      change.mean.percent < 0 & change.max.percent == 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean decreased, max no change", 
+      change.mean.percent > 0 & change.max.percent == 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean increased, max no change"), 
+    Linf = case_when(
+      Linf == 146.528 ~ "20% decline",
+      Linf == 164.844 ~ "10% decline"),
+    sdist = "25%") %>% 
+  drop_na(sign_combination)%>% 
+  group_by(Linf, sign_combination, sdist) %>%
+  summarise(change.percent = round((n() / 22) * 100, 2), change.number = n())
+
+swordfish_summary_66 <- swordfish_alldata66 %>%
+  filter(scenario!="baseline") %>% 
+  filter(Linf!= 183.16) %>% 
+  mutate(
+    sign_combination = case_when(
+      change.mean.percent > 0 & change.max.percent > 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Both increased",
+      change.mean.percent < 0 & change.max.percent < 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Both decreased",
+      change.mean.percent > 0 & change.max.percent < 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean increased, max decreased",
+      change.mean.percent < 0 & change.max.percent > 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean decreased, max increased", 
+      change.mean.percent < 0 & change.max.percent == 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean decreased, max no change", 
+      change.mean.percent > 0 & change.max.percent == 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean increased, max no change"), 
+    Linf = case_when(
+      Linf == 146.528 ~ "20% decline",
+      Linf == 164.844 ~ "10% decline"),
+    sdist = "66%") %>% 
+  drop_na(sign_combination)%>% 
+  group_by(Linf, sign_combination,sdist) %>%
+  summarise(change.percent = round((n() / 22) * 100, 2), change.number = n())
+
+swordfish_summary <- rbind(swordfish_summary_full, swordfish_summary_25, swordfish_summary_66)
+
+
+swordfish_summary <- swordfish_summary %>%
+  mutate(sign_combination = factor(sign_combination, ordered = TRUE,
+                                   levels = c("Mean increased, max decreased", "Mean decreased, max increased",  "Both increased","Both decreased")),
+         Linf = factor(Linf, ordered = TRUE,
+                                   levels = c("10% decline", "20% decline")),
+         sdist = factor(sdist, ordered = TRUE,
+                                   levels = c("Full", "25%", "66%"))) %>%
+  #arrange(sign_combination) %>%
+  group_by(sdist,Linf) %>%
+ mutate(ylabel_pos = cumsum(change.number), ylabel=(change.number/sum(change.number))*100)
+
+cbPalette <- c(  "#F0E442", "#CC79A7","#56B4E9", "#E69F00","#009E73", "#0072B2", "#D55E00","#000000" )
+
+swordfish_plot <- ggplot(swordfish_summary, aes(sdist, change.number, fill = sign_combination)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = cbPalette, 
+                    labels = function(labels) str_replace_all(labels, ",", ",\n")) + 
+  facet_wrap(.~Linf)+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        axis.title.x = element_text(vjust = -1), 
+        axis.title.y = element_text(vjust = 2.5),
+        plot.margin = margin(t=10, r=10, l=10, b=10),
+        legend.title = element_blank(), 
+        legend.key.height = unit(1.2, "cm"), 
+        legend.text = element_text(lineheight = 1.1)
+        )+
+  geom_text(aes(y = ylabel_pos,label = scales::percent(ylabel/100, accuracy = 1)), vjust = 1.35, size = 2.5) +
+  labs(x = "Size distribution", y = "Number of M/K ratio scenarios", fill = "Change in mean and max \nsize from initial scenario") 
+
+swordfish_plot 
+
+plot_path <- file.path(project_dir, "03_results",
+                             "main_plots")
+
+ggsave("swordfish_summarystats.png",
+       plot = swordfish_plot, 
+       path = plot_path, 
+       width = 15, height = 10, units = "cm", 
+       dpi = 300)
+```
+
+
+```{r swordfish 1 panel}
+swordfish_summary_full <- swordfish_alldatafull %>%
+  filter(scenario!="baseline") %>% 
+  mutate(
+    sign_combination = case_when(
+      change.mean.percent > 0 & change.max.percent > 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Both increased",
+      change.mean.percent < 0 & change.max.percent < 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Both decreased",
+      change.mean.percent > 0 & change.max.percent < 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean increased, max decreased",
+      change.mean.percent < 0 & change.max.percent > 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean decreased, max increased", 
+      change.mean.percent < 0 & change.max.percent == 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean decreased, max no change", 
+      change.mean.percent > 0 & change.max.percent == 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean increased, max no change"), 
+    Linf = case_when(
+      Linf == 183.16 ~ "No change",
+      Linf == 146.528 ~ "20% decline",
+      Linf == 164.844 ~ "10% decline"),
+    sdist = "Full") %>% 
+  drop_na(sign_combination)%>% 
+  group_by(Linf, sign_combination, sdist) %>%
+  summarise(change.percent = round((n() / 36) * 100, 2), change.number = n())
+
+swordfish_summary_25 <- swordfish_alldata25 %>%
+  filter(scenario!="baseline") %>% 
+  mutate(
+    sign_combination = case_when(
+      change.mean.percent > 0 & change.max.percent > 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Both increased",
+      change.mean.percent < 0 & change.max.percent < 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Both decreased",
+      change.mean.percent > 0 & change.max.percent < 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean increased, max decreased",
+      change.mean.percent < 0 & change.max.percent > 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean decreased, max increased", 
+      change.mean.percent < 0 & change.max.percent == 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean decreased, max no change", 
+      change.mean.percent > 0 & change.max.percent == 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean increased, max no change"), 
+    Linf = case_when(
+     Linf == 183.16 ~ "No change",
+      Linf == 146.528 ~ "20% decline",
+      Linf == 164.844 ~ "10% decline"),
+    sdist = "25%") %>% 
+  drop_na(sign_combination)%>% 
+  group_by(Linf, sign_combination, sdist) %>%
+  summarise(change.percent = round((n() / 36) * 100, 2), change.number = n())
+
+swordfish_summary_66 <- swordfish_alldata66 %>%
+  filter(scenario!="baseline") %>% 
+  mutate(
+    sign_combination = case_when(
+      change.mean.percent > 0 & change.max.percent > 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Both increased",
+      change.mean.percent < 0 & change.max.percent < 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Both decreased",
+      change.mean.percent > 0 & change.max.percent < 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean increased, max decreased",
+      change.mean.percent < 0 & change.max.percent > 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean decreased, max increased", 
+      change.mean.percent < 0 & change.max.percent == 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean decreased, max no change", 
+      change.mean.percent > 0 & change.max.percent == 0 & Mk.ratio<1.8399778 &Mk.ratio >0.4666092~ "Mean increased, max no change"), 
+    Linf = case_when(
+      Linf == 183.16 ~ "No change",
+      Linf == 146.528 ~ "20% decline",
+      Linf == 164.844 ~ "10% decline"),
+    sdist = "66%") %>% 
+  drop_na(sign_combination)%>% 
+  group_by(Linf, sign_combination,sdist) %>%
+  summarise(change.percent = round((n() / 36) * 100, 2), change.number = n())
+
+swordfish_summary <- rbind(swordfish_summary_full, swordfish_summary_25, swordfish_summary_66)
+swordfish_summary <- swordfish_summary %>% filter(Linf=="No change")
+
+
+swordfish_summary <- swordfish_summary %>%
+  mutate(sign_combination = factor(sign_combination, ordered = TRUE,
+                                   levels = c("Mean increased, max decreased", "Mean decreased, max increased",  "Both increased","Both decreased")),
+         sdist = factor(sdist, ordered = TRUE,
+                                   levels = c("Full", "25%", "66%"))) %>%
+  #arrange(sign_combination) %>%
+  group_by(sdist,Linf) %>%
+ mutate(ylabel_pos = cumsum(change.number), ylabel=(change.number/sum(change.number))*100)
+
+cbPalette <- c( "#F0E442", "#D55E00","#009E73","#CC79A7","#56B4E9", "#E69F00",  "#0072B2", "#000000" )
+
+swordfish_plot <- ggplot(swordfish_summary, aes(sdist, change.number, fill = sign_combination)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = cbPalette, 
+                    labels = function(labels) str_replace_all(labels, ",", ",\n")) + 
+  theme_classic()+
+  theme(panel.grid = element_blank(),
+        axis.title.x = element_text(vjust = -1), 
+        axis.title.y = element_text(vjust = 2.5),
+        plot.margin = margin(t=10, r=10, l=10, b=10),
+        legend.title = element_blank(), 
+        legend.key.height = unit(1.2, "cm"), 
+        legend.text = element_text(lineheight = 1.1),
+        axis.line = element_line(linewidth = 0.3)
+        )+
+  geom_text(aes(y = ylabel_pos,label = scales::percent(ylabel/100, accuracy = 1)), vjust = 1.35, size = 2.5) +
+  labs(x = "Size distribution", y = "Number of M/K ratio scenarios", fill = "Change in mean and max \nsize from initial scenario") 
+
+swordfish_plot 
+
+plot_path <- file.path(project_dir, "03_results",
+                             "main_plots")
+
+ggsave("swordfish_summarystats_BASELINE.png",
+       plot = swordfish_plot, 
+       path = plot_path, 
+       width = 15, height = 12, units = "cm", 
+       dpi = 300)
+```
+
+# moonwrasse
+
+
+```{r moonwrasse load all data}
+rm(list=ls()) # clear workspace
+project_dir <- here::here()
+
+raw_data <- file.path(paste(project_dir, "0_data", "Prince_2023_MK_precise.csv", sep = "/"))
+mk <- read_csv(raw_data) #read in raw data
+
+mk_moonwrasse <- mk %>% filter(species == "Thalassoma lunare")
+summary(mk_moonwrasse)
+
+#baseline - step 1
+baselinefull_moonwrasse <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output1", 
+                                         "08_sim_output_baseline_moonwrasse_fulldist.csv", sep = "/"))
+moonwrasse_baselinefull <- read_csv(baselinefull_moonwrasse)
+moonwrasse_baselinefull$Linf <- factor(moonwrasse_baselinefull$Linf) # make Linf discrete
+
+#increasing k
+baselinek_moonwrasse <- file.path(paste(project_dir, 
+                                        "03_results",
+                                         "output1", 
+                                         "08_sim_output_baselinek_moonwrasse_fulldist.csv", sep = "/"))
+moonwrasse_baselinek <- read_csv(baselinek_moonwrasse)
+moonwrasse_baselinek$Linf <- factor(moonwrasse_baselinek$Linf) # make Linf discrete
+
+
+#truncated 25%
+baseline25_moonwrasse <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output1", 
+                                         "08_sim_output_baseline_moonwrasse_25dist.csv", sep = "/"))
+moonwrasse_baseline25 <- read_csv(baseline25_moonwrasse)
+moonwrasse_baseline25$Linf <- factor(moonwrasse_baseline25$Linf) # make Linf discrete
+
+baseline25k_moonwrasse <- file.path(paste(project_dir, 
+                                        "03_results",
+                                         "output1", 
+                                         "08_sim_output_baselinek_moonwrasse_25dist.csv", sep = "/"))
+moonwrasse_baseline25k <- read_csv(baseline25k_moonwrasse)
+moonwrasse_baseline25k$Linf <- factor(moonwrasse_baseline25k$Linf) # make Linf discrete
+
+#truncated 66%
+baseline66_moonwrasse <- file.path(paste(project_dir, 
+                                        "03_results",
+                                         "output1", 
+                                         "08_sim_output_baseline_moonwrasse_66dist.csv", sep = "/"))
+moonwrasse_baseline66 <- read_csv(baseline66_moonwrasse)
+moonwrasse_baseline66$Linf <- factor(moonwrasse_baseline66$Linf) # make Linf discrete
+
+baseline66k_moonwrasse <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output1", 
+                                         "08_sim_output_baselinek_moonwrasse_66dist.csv", sep = "/"))
+moonwrasse_baseline66k <- read_csv(baseline66k_moonwrasse)
+moonwrasse_baseline66k$Linf <- factor(moonwrasse_baseline66k$Linf) # make Linf discrete
+
+# linf decrease - step 2
+Linffull_moonwrasse <- file.path(paste(project_dir, 
+                                        "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linf_moonwrasse_fulldist.csv", sep = "/"))
+moonwrasse_Linffull <- read_csv(Linffull_moonwrasse)
+moonwrasse_Linffull$Linf <- factor(moonwrasse_Linffull$Linf) # make Linf discrete
+
+#increasing k
+Linfk_moonwrasse <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linfk_moonwrasse_fulldist.csv", sep = "/"))
+moonwrasse_Linfk <- read_csv(Linfk_moonwrasse)
+moonwrasse_Linfk$Linf <- factor(moonwrasse_Linfk$Linf) # make Linfk discrete
+
+
+#truncated 25
+Linf25_moonwrasse <- file.path(paste(project_dir, 
+                                        "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linf_moonwrasse_25dist.csv", sep = "/"))
+moonwrasse_Linf25 <- read_csv(Linf25_moonwrasse)
+moonwrasse_Linf25$Linf <- factor(moonwrasse_Linf25$Linf) # make Linf25 discrete
+
+Linf25k_moonwrasse <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linfk_moonwrasse_25dist.csv", sep = "/"))
+moonwrasse_Linf25k <- read_csv(Linf25k_moonwrasse)
+moonwrasse_Linf25k$Linf <- factor(moonwrasse_Linf25k$Linf) # make Linfk discrete
+
+#truncated 66
+Linf66_moonwrasse <- file.path(paste(project_dir, 
+                                        "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linf_moonwrasse_66dist.csv", sep = "/"))
+moonwrasse_Linf66 <- read_csv(Linf66_moonwrasse)
+moonwrasse_Linf66$Linf <- factor(moonwrasse_Linf66$Linf) # make Linf66 discrete
+
+Linf66k_moonwrasse <- file.path(paste(project_dir, 
+                                        "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linfk_moonwrasse_66dist.csv", sep = "/"))
+moonwrasse_Linf66k <- read_csv(Linf66k_moonwrasse)
+moonwrasse_Linf66k$Linf <- factor(moonwrasse_Linf66k$Linf) # make Linfk discrete
+
+
+```
+
+```{r moonwrasse combine data}
+moonwrasse_baselinefull <- moonwrasse_baselinefull %>% mutate(data.ID = "baseline")
+moonwrasse_baseline25 <- moonwrasse_baseline25 %>% mutate(data.ID = "baseline")
+moonwrasse_baseline66 <- moonwrasse_baseline66 %>% mutate(data.ID = "baseline")
+moonwrasse_Linffull <- moonwrasse_Linffull %>% mutate(data.ID = "Linf") 
+moonwrasse_Linf25 <- moonwrasse_Linf25 %>% mutate(data.ID = "Linf") 
+moonwrasse_Linf66 <- moonwrasse_Linf66 %>% mutate(data.ID = "Linf") 
+moonwrasse_baselinek <- moonwrasse_baselinek %>% mutate(data.ID = "baseline")
+moonwrasse_baseline25k <- moonwrasse_baseline25k %>% mutate(data.ID = "baseline")
+moonwrasse_baseline66k <- moonwrasse_baseline66k %>% mutate(data.ID = "baseline")
+moonwrasse_Linfk <- moonwrasse_Linfk %>% mutate(data.ID = "Linf") 
+moonwrasse_Linf25k <- moonwrasse_Linf25k %>% mutate(data.ID = "Linf")
+moonwrasse_Linf66k <- moonwrasse_Linf66k %>% mutate(data.ID = "Linf")
+
+moonwrasse_alldatafull <- rbind(moonwrasse_baselinefull, moonwrasse_Linffull)
+moonwrasse_alldatak <- rbind(moonwrasse_baselinek, moonwrasse_Linfk)
+moonwrasse_alldata25k <- rbind(moonwrasse_baseline25k, moonwrasse_Linf25k)
+moonwrasse_alldata66k <- rbind(moonwrasse_baseline66k, moonwrasse_Linf66k)
+moonwrasse_alldata25 <- rbind(moonwrasse_baseline25, moonwrasse_Linf25)
+moonwrasse_alldata66 <- rbind(moonwrasse_baseline66, moonwrasse_Linf66)
+
+moonwrasse_alldatafull$data.ID <- factor(moonwrasse_alldatafull$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+moonwrasse_alldatak$data.ID <- factor(moonwrasse_alldatak$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+moonwrasse_alldata25k$data.ID <- factor(moonwrasse_alldata25k$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+moonwrasse_alldata66k$data.ID <- factor(moonwrasse_alldata66k$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+moonwrasse_alldata25$data.ID <- factor(moonwrasse_alldata25$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+moonwrasse_alldata66$data.ID <- factor(moonwrasse_alldata66$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+
+
+```
+
+
+```{r}
+moonwrasse_summary_full <- moonwrasse_alldatafull %>%
+  filter(scenario!="baseline") %>% 
+  mutate(
+    sign_combination = case_when(
+      change.mean.percent > 0 & change.max.percent > 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Both increased",
+      change.mean.percent < 0 & change.max.percent < 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Both decreased",
+      change.mean.percent > 0 & change.max.percent < 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean increased, max decreased",
+      change.mean.percent < 0 & change.max.percent > 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean decreased, max increased", 
+      change.mean.percent < 0 & change.max.percent == 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean decreased, max no change", 
+      change.mean.percent > 0 & change.max.percent == 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean increased, max no change"), 
+    Linf = case_when(
+      Linf == 14.1 ~ "No change",
+      Linf == 11.28 ~ "20% decline",
+      Linf == 12.69 ~ "10% decline"),
+    sdist = "Full") %>% 
+  drop_na(sign_combination)%>% 
+  group_by(Linf, sign_combination, sdist) %>%
+  summarise(change.percent = round((n() / 22) * 100, 2), change.number = n())
+
+moonwrasse_summary_25 <- moonwrasse_alldata25 %>%
+  filter(scenario!="baseline") %>% 
+  mutate(
+    sign_combination = case_when(
+      change.mean.percent > 0 & change.max.percent > 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Both increased",
+      change.mean.percent < 0 & change.max.percent < 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Both decreased",
+      change.mean.percent > 0 & change.max.percent < 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean increased, max decreased",
+      change.mean.percent < 0 & change.max.percent > 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean decreased, max increased", 
+      change.mean.percent < 0 & change.max.percent == 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean decreased, max no change", 
+      change.mean.percent > 0 & change.max.percent == 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean increased, max no change"), 
+   Linf = case_when(
+      Linf == 14.1 ~ "No change",
+      Linf == 11.28 ~ "20% decline",
+      Linf == 12.69 ~ "10% decline"),
+    sdist = "25%") %>% 
+  drop_na(sign_combination)%>% 
+  group_by(Linf, sign_combination, sdist) %>%
+  summarise(change.percent = round((n() / 22) * 100, 2), change.number = n())
+
+moonwrasse_summary_66 <- moonwrasse_alldata66 %>%
+  filter(scenario!="baseline") %>% 
+  mutate(
+    sign_combination = case_when(
+      change.mean.percent > 0 & change.max.percent > 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Both increased",
+      change.mean.percent < 0 & change.max.percent < 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Both decreased",
+      change.mean.percent > 0 & change.max.percent < 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean increased, max decreased",
+      change.mean.percent < 0 & change.max.percent > 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean decreased, max increased", 
+      change.mean.percent < 0 & change.max.percent == 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean decreased, max no change", 
+      change.mean.percent > 0 & change.max.percent == 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean increased, max no change"), 
+    Linf = case_when(
+      Linf == 14.1 ~ "No change",
+      Linf == 11.28 ~ "20% decline",
+      Linf == 12.69 ~ "10% decline"),
+    sdist = "66%") %>% 
+  drop_na(sign_combination)%>% 
+  group_by(Linf, sign_combination,sdist) %>%
+  summarise(change.percent = round((n() / 22) * 100, 2), change.number = n())
+
+moonwrasse_summary <- rbind(moonwrasse_summary_full, moonwrasse_summary_25, moonwrasse_summary_66)
+
+
+moonwrasse_summary <- moonwrasse_summary %>%
+  mutate(sign_combination = factor(sign_combination, ordered = TRUE,
+                                   levels = c("Mean increased, max no change","Mean increased, max decreased",  "Mean decreased, max no change", "Both increased","Both decreased")),
+         Linf = factor(Linf, ordered = TRUE,
+                                   levels = c("No change", "10% decline", "20% decline")),
+         sdist = factor(sdist, ordered = TRUE,
+                                   levels = c("Full", "25%", "66%"))) %>%
+  #arrange(sign_combination) %>%
+  group_by(sdist,Linf) %>%
+  mutate(ylabel_pos = cumsum(change.number), ylabel=(change.number/sum(change.number))*100)
+
+cbPalette <- c( "#D55E00", "#56B4E9","#F0E442", "#E69F00","#CC79A7",  "#0072B2","#009E73", "#000000" )
+
+moonwrasse_plot <- ggplot(moonwrasse_summary, aes(sdist, change.number, fill = sign_combination)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = cbPalette) + 
+  facet_wrap(.~Linf)+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        axis.title.x = element_text(vjust = -1), 
+        axis.title.y = element_text(vjust = 2.5),
+        plot.margin = margin(t=10, r=10, l=10, b=10),
+        legend.title = element_text(margin = margin(b = 10)), 
+        legend.spacing.y = unit(0.5, "cm"), 
+        legend.position = "bottom")+
+  guides(fill = guide_legend(nrow = 3)) +  
+  geom_text(aes(y = ylabel_pos,label = scales::percent(ylabel/100, accuracy = 0.1)), vjust = 1.35, size = 2.5) +
+  #geom_text(aes(y = ylabel_pos,label = change.number), vjust = 1.35, size = 5) +
+  labs(x = "Size distribution", y = "Number of M/k ratio scenarios", fill = "Change in mean and max \nsize from initial scenario") 
+
+moonwrasse_plot 
+
+plot_path <- file.path(project_dir, "03_results",
+                             "main_plots")
+
+ggsave("moonwrasse_summarystats.png",
+       plot = moonwrasse_plot, 
+       path = plot_path, 
+       width = 15, height = 12, units = "cm")
+```
+
+```{r}
+moonwrasse_summary_full <- moonwrasse_alldatafull %>%
+  filter(scenario!="baseline") %>% 
+  filter(Linf!=14.1) %>% 
+  mutate(
+    sign_combination = case_when(
+      change.mean.percent > 0 & change.max.percent > 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Both increased",
+      change.mean.percent < 0 & change.max.percent < 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Both decreased",
+      change.mean.percent > 0 & change.max.percent < 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean increased, max decreased",
+      change.mean.percent < 0 & change.max.percent > 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean decreased, max increased", 
+      change.mean.percent < 0 & change.max.percent == 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean decreased, max no change", 
+      change.mean.percent > 0 & change.max.percent == 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean increased, max no change"), 
+    Linf = case_when(
+      Linf == 11.28 ~ "20% decline",
+      Linf == 12.69 ~ "10% decline"),
+    sdist = "Full") %>% 
+  drop_na(sign_combination)%>% 
+  group_by(Linf, sign_combination, sdist) %>%
+  summarise(change.percent = round((n() / 22) * 100, 2), change.number = n())
+
+moonwrasse_summary_25 <- moonwrasse_alldata25 %>%
+  filter(scenario!="baseline") %>% 
+  filter(Linf!=14.1) %>% 
+  mutate(
+    sign_combination = case_when(
+      change.mean.percent > 0 & change.max.percent > 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Both increased",
+      change.mean.percent < 0 & change.max.percent < 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Both decreased",
+      change.mean.percent > 0 & change.max.percent < 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean increased, max decreased",
+      change.mean.percent < 0 & change.max.percent > 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean decreased, max increased", 
+      change.mean.percent < 0 & change.max.percent == 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean decreased, max no change", 
+      change.mean.percent > 0 & change.max.percent == 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean increased, max no change"), 
+   Linf = case_when(
+      Linf == 11.28 ~ "20% decline",
+      Linf == 12.69 ~ "10% decline"),
+    sdist = "25%") %>% 
+  drop_na(sign_combination)%>% 
+  group_by(Linf, sign_combination, sdist) %>%
+  summarise(change.percent = round((n() / 22) * 100, 2), change.number = n())
+
+moonwrasse_summary_66 <- moonwrasse_alldata66 %>%
+  filter(scenario!="baseline") %>% 
+  filter(Linf!=14.1) %>% 
+  mutate(
+    sign_combination = case_when(
+      change.mean.percent > 0 & change.max.percent > 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Both increased",
+      change.mean.percent < 0 & change.max.percent < 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Both decreased",
+      change.mean.percent > 0 & change.max.percent < 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean increased, max decreased",
+      change.mean.percent < 0 & change.max.percent > 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean decreased, max increased", 
+      change.mean.percent < 0 & change.max.percent == 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean decreased, max no change", 
+      change.mean.percent > 0 & change.max.percent == 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean increased, max no change"), 
+    Linf = case_when(
+      Linf == 11.28 ~ "20% decline",
+      Linf == 12.69 ~ "10% decline"),
+    sdist = "66%") %>% 
+  drop_na(sign_combination)%>% 
+  group_by(Linf, sign_combination,sdist) %>%
+  summarise(change.percent = round((n() / 22) * 100, 2), change.number = n())
+
+moonwrasse_summary <- rbind(moonwrasse_summary_full, moonwrasse_summary_25, moonwrasse_summary_66)
+
+
+moonwrasse_summary <- moonwrasse_summary %>%
+  mutate(sign_combination = factor(sign_combination, ordered = TRUE,
+                                   levels = c("Mean increased, max no change","Mean increased, max decreased",  "Mean decreased, max no change", "Both increased","Both decreased")),
+         Linf = factor(Linf, ordered = TRUE,
+                                   levels = c("10% decline", "20% decline")),
+         sdist = factor(sdist, ordered = TRUE,
+                                   levels = c("Full", "25%", "66%"))) %>%
+  #arrange(sign_combination) %>%
+  group_by(sdist,Linf) %>%
+  mutate(ylabel_pos = cumsum(change.number), ylabel=(change.number/sum(change.number))*100)
+
+cbPalette <- c(  "#F0E442", "#CC79A7","#56B4E9", "#E69F00","#009E73", "#0072B2", "#D55E00","#000000" )
+
+moonwrasse_plot <- ggplot(moonwrasse_summary, aes(sdist, change.number, fill = sign_combination)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = cbPalette, 
+                    labels = function(labels) str_replace_all(labels, ",", ",\n")) + 
+  facet_wrap(.~Linf)+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        axis.title.x = element_text(vjust = -1), 
+        axis.title.y = element_text(vjust = 2.5),
+        plot.margin = margin(t=10, r=10, l=10, b=10),
+        legend.title = element_blank(), 
+        legend.key.height = unit(1.2, "cm"), 
+        legend.text = element_text(lineheight = 1.1)
+        )+
+  geom_text(aes(y = ylabel_pos,label = scales::percent(ylabel/100, accuracy = 1)), vjust = 1.35, size = 2.5) +
+  labs(x = "Size distribution", y = "Number of M/K ratio scenarios", fill = "Change in mean and max \nsize from initial scenario") 
+
+moonwrasse_plot 
+
+plot_path <- file.path(project_dir, "03_results",
+                             "main_plots")
+
+ggsave("moonwrasse_summarystats.png",
+       plot = moonwrasse_plot, 
+       path = plot_path, 
+       width = 15, height = 10, units = "cm")
+```
+
+
+```{r moonwrasse 1 panel}
+moonwrasse_summary_full <- moonwrasse_alldatafull %>%
+  filter(scenario!="baseline") %>% 
+  mutate(
+    sign_combination = case_when(
+      change.mean.percent > 0 & change.max.percent > 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Both increased",
+      change.mean.percent < 0 & change.max.percent < 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Both decreased",
+      change.mean.percent > 0 & change.max.percent < 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean increased, max decreased",
+      change.mean.percent < 0 & change.max.percent > 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean decreased, max increased", 
+      change.mean.percent < 0 & change.max.percent == 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean decreased, max no change", 
+      change.mean.percent > 0 & change.max.percent == 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean increased, max no change"), 
+    Linf = case_when(
+      Linf == 14.1 ~ "No change",
+      Linf == 11.28 ~ "20% decline",
+      Linf == 12.69 ~ "10% decline"),
+    sdist = "Full") %>% 
+  drop_na(sign_combination)%>% 
+  group_by(Linf, sign_combination, sdist) %>%
+  summarise(change.percent = round((n() / 22) * 100, 2), change.number = n())
+
+moonwrasse_summary_25 <- moonwrasse_alldata25 %>%
+  filter(scenario!="baseline") %>% 
+  mutate(
+    sign_combination = case_when(
+      change.mean.percent > 0 & change.max.percent > 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Both increased",
+      change.mean.percent < 0 & change.max.percent < 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Both decreased",
+      change.mean.percent > 0 & change.max.percent < 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean increased, max decreased",
+      change.mean.percent < 0 & change.max.percent > 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean decreased, max increased", 
+      change.mean.percent < 0 & change.max.percent == 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean decreased, max no change", 
+      change.mean.percent > 0 & change.max.percent == 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean increased, max no change"), 
+   Linf = case_when(
+      Linf == 14.1 ~ "No change",
+      Linf == 11.28 ~ "20% decline",
+      Linf == 12.69 ~ "10% decline"),
+    sdist = "25%") %>% 
+  drop_na(sign_combination)%>% 
+  group_by(Linf, sign_combination, sdist) %>%
+  summarise(change.percent = round((n() / 22) * 100, 2), change.number = n())
+
+moonwrasse_summary_66 <- moonwrasse_alldata66 %>%
+  filter(scenario!="baseline") %>% 
+  mutate(
+    sign_combination = case_when(
+      change.mean.percent > 0 & change.max.percent > 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Both increased",
+      change.mean.percent < 0 & change.max.percent < 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Both decreased",
+      change.mean.percent > 0 & change.max.percent < 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean increased, max decreased",
+      change.mean.percent < 0 & change.max.percent > 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean decreased, max increased", 
+      change.mean.percent < 0 & change.max.percent == 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean decreased, max no change", 
+      change.mean.percent > 0 & change.max.percent == 0 & Mk.ratio<3.1033980 &Mk.ratio >0.7742781~ "Mean increased, max no change"), 
+    Linf = case_when(
+      Linf == 14.1 ~ "No change",
+      Linf == 11.28 ~ "20% decline",
+      Linf == 12.69 ~ "10% decline"),
+    sdist = "66%") %>% 
+  drop_na(sign_combination)%>% 
+  group_by(Linf, sign_combination,sdist) %>%
+  summarise(change.percent = round((n() / 22) * 100, 2), change.number = n())
+
+moonwrasse_summary <- rbind(moonwrasse_summary_full, moonwrasse_summary_25, moonwrasse_summary_66)
+moonwrasse_summary <- moonwrasse_summary %>% filter(Linf=="No change")
+
+moonwrasse_summary <- moonwrasse_summary %>%
+  mutate(sign_combination = factor(sign_combination, ordered = TRUE,
+                                   levels = c("Mean increased, max no change","Mean increased, max decreased",  "Mean decreased, max no change", "Both increased","Both decreased")),
+         sdist = factor(sdist, ordered = TRUE,
+                                   levels = c("Full", "25%", "66%"))) %>%
+  #arrange(sign_combination) %>%
+  group_by(sdist,Linf) %>%
+  mutate(ylabel_pos = cumsum(change.number), ylabel=(change.number/sum(change.number))*100)
+
+cbPalette <- c(  "#56B4E9","#F0E442","#E69F00", "#009E73","#CC79A7",  "#D55E00","#0072B2", "#000000" )
+
+moonwrasse_plot <- ggplot(moonwrasse_summary, aes(sdist, change.number, fill = sign_combination)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = cbPalette, 
+                    labels = function(labels) str_replace_all(labels, ",", ",\n")) + 
+  theme_classic()+
+  theme(panel.grid = element_blank(),
+        axis.title.x = element_text(vjust = -1), 
+        axis.title.y = element_text(vjust = 2.5),
+        plot.margin = margin(t=10, r=10, l=10, b=10),
+        legend.title = element_blank(), 
+        legend.key.height = unit(1.2, "cm"), 
+        legend.text = element_text(lineheight = 1.1), 
+        axis.line = element_line(linewidth = 0.3)
+        )+
+  geom_text(aes(y = ylabel_pos,label = scales::percent(ylabel/100, accuracy = 1)), vjust = 1.35, size = 2.5) +
+  labs(x = "Size distribution", y = "Number of M/K ratio scenarios", fill = "Change in mean and max \nsize from initial scenario") 
+
+moonwrasse_plot
+
+plot_path <- file.path(project_dir, "03_results",
+                             "main_plots")
+
+ggsave("moonwrasse_summarystats_BASELINE.png",
+       plot = moonwrasse_plot, 
+       path = plot_path, 
+       width = 15, height = 12, units = "cm")
+```

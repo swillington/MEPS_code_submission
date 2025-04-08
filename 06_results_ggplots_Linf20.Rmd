@@ -1,0 +1,1718 @@
+---
+title: "steps 1 and 2 plots"
+author: "Sarah Willington"
+date: "2023-04-17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r libraries, include=FALSE}
+library(tidyverse)
+library(patchwork)
+library(here)
+library(colorspace)
+
+```
+
+## alfonsino set up data
+
+```{r alfonsino load all data}
+project_dir <- here::here()
+
+raw_data <- file.path(paste(project_dir, "0_data", "Prince_2023_MK_precise.csv", sep = "/"))
+mk <- read_csv(raw_data) #read in raw data
+
+mk_alfonsino <- mk %>% filter(species == "Beryx splendens")
+summary(mk_alfonsino)
+
+#baseline - step 1
+baselinefull_alfonsino <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output1", 
+                                         "08_sim_output_baseline_alfonsino_fulldist.csv", sep = "/"))
+alfonsino_baselinefull <- read_csv(baselinefull_alfonsino)
+alfonsino_baselinefull$Linf <- factor(alfonsino_baselinefull$Linf) # make Linf discrete
+
+#increasing k
+baselinek_alfonsino <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output1", 
+                                         "08_sim_output_baselinek_alfonsino_fulldist.csv", sep = "/"))
+alfonsino_baselinek <- read_csv(baselinek_alfonsino)
+alfonsino_baselinek$Linf <- factor(alfonsino_baselinek$Linf) # make Linf discrete
+
+
+#truncated 25%
+baseline25_alfonsino <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output1", 
+                                         "08_sim_output_baseline_alfonsino_25dist.csv", sep = "/"))
+alfonsino_baseline25 <- read_csv(baseline25_alfonsino)
+alfonsino_baseline25$Linf <- factor(alfonsino_baseline25$Linf) # make Linf discrete
+
+baseline25k_alfonsino <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output1", 
+                                         "08_sim_output_baselinek_alfonsino_25dist.csv", sep = "/"))
+alfonsino_baseline25k <- read_csv(baseline25k_alfonsino)
+alfonsino_baseline25k$Linf <- factor(alfonsino_baseline25k$Linf) # make Linf discrete
+
+#truncated 66%
+baseline66_alfonsino <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output1", 
+                                         "08_sim_output_baseline_alfonsino_66dist.csv", sep = "/"))
+alfonsino_baseline66 <- read_csv(baseline66_alfonsino)
+alfonsino_baseline66$Linf <- factor(alfonsino_baseline66$Linf) # make Linf discrete
+
+baseline66k_alfonsino <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output1", 
+                                         "08_sim_output_baselinek_alfonsino_66dist.csv", sep = "/"))
+alfonsino_baseline66k <- read_csv(baseline66k_alfonsino)
+alfonsino_baseline66k$Linf <- factor(alfonsino_baseline66k$Linf) # make Linf discrete
+
+# linf decrease - step 2
+Linffull_alfonsino <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linf_alfonsino_fulldist.csv", sep = "/"))
+alfonsino_Linffull <- read_csv(Linffull_alfonsino)
+alfonsino_Linffull$Linf <- factor(alfonsino_Linffull$Linf) # make Linf discrete
+
+#increasing k
+Linfk_alfonsino <- file.path(paste(project_dir, 
+                                        "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linfk_alfonsino_fulldist.csv", sep = "/"))
+alfonsino_Linfk <- read_csv(Linfk_alfonsino)
+alfonsino_Linfk$Linf <- factor(alfonsino_Linfk$Linf) # make Linfk discrete
+
+
+#truncated 25
+Linf25_alfonsino <- file.path(paste(project_dir, 
+                                        "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linf_alfonsino_25dist.csv", sep = "/"))
+alfonsino_Linf25 <- read_csv(Linf25_alfonsino)
+alfonsino_Linf25$Linf <- factor(alfonsino_Linf25$Linf) # make Linf25 discrete
+
+Linf25k_alfonsino <- file.path(paste(project_dir, 
+                                        "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linfk_alfonsino_25dist.csv", sep = "/"))
+alfonsino_Linf25k <- read_csv(Linf25k_alfonsino)
+alfonsino_Linf25k$Linf <- factor(alfonsino_Linf25k$Linf) # make Linfk discrete
+
+#truncated 66
+Linf66_alfonsino <- file.path(paste(project_dir, 
+                                        "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linf_alfonsino_66dist.csv", sep = "/"))
+alfonsino_Linf66 <- read_csv(Linf66_alfonsino)
+alfonsino_Linf66$Linf <- factor(alfonsino_Linf66$Linf) # make Linf66 discrete
+
+Linf66k_alfonsino <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linfk_alfonsino_66dist.csv", sep = "/"))
+alfonsino_Linf66k <- read_csv(Linf66k_alfonsino)
+alfonsino_Linf66k$Linf <- factor(alfonsino_Linf66k$Linf) # make Linfk discrete
+
+
+```
+
+```{r alfonsino combine data}
+alfonsino_baselinefull <- alfonsino_baselinefull %>% mutate(data.ID = "baseline")
+alfonsino_baseline25 <- alfonsino_baseline25 %>% mutate(data.ID = "baseline")
+alfonsino_baseline66 <- alfonsino_baseline66 %>% mutate(data.ID = "baseline")
+alfonsino_Linffull <- alfonsino_Linffull %>% mutate(data.ID = "Linf") 
+alfonsino_Linf25 <- alfonsino_Linf25 %>% mutate(data.ID = "Linf") 
+alfonsino_Linf66 <- alfonsino_Linf66 %>% mutate(data.ID = "Linf") 
+alfonsino_baselinek <- alfonsino_baselinek %>% mutate(data.ID = "baseline")
+alfonsino_baseline25k <- alfonsino_baseline25k %>% mutate(data.ID = "baseline")
+alfonsino_baseline66k <- alfonsino_baseline66k %>% mutate(data.ID = "baseline")
+alfonsino_Linfk <- alfonsino_Linfk %>% mutate(data.ID = "Linf") 
+alfonsino_Linf25k <- alfonsino_Linf25k %>% mutate(data.ID = "Linf")
+alfonsino_Linf66k <- alfonsino_Linf66k %>% mutate(data.ID = "Linf")
+
+alfonsino_alldatafull <- rbind(alfonsino_baselinefull, alfonsino_Linffull)
+alfonsino_alldatak <- rbind(alfonsino_baselinek, alfonsino_Linfk)
+alfonsino_alldata25k <- rbind(alfonsino_baseline25k, alfonsino_Linf25k)
+alfonsino_alldata66k <- rbind(alfonsino_baseline66k, alfonsino_Linf66k)
+alfonsino_alldata25 <- rbind(alfonsino_baseline25, alfonsino_Linf25)
+alfonsino_alldata66 <- rbind(alfonsino_baseline66, alfonsino_Linf66)
+
+alfonsino_alldatafull$data.ID <- factor(alfonsino_alldatafull$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+alfonsino_alldatak$data.ID <- factor(alfonsino_alldatak$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+alfonsino_alldata25k$data.ID <- factor(alfonsino_alldata25k$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+alfonsino_alldata66k$data.ID <- factor(alfonsino_alldata66k$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+alfonsino_alldata25$data.ID <- factor(alfonsino_alldata25$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+alfonsino_alldata66$data.ID <- factor(alfonsino_alldata66$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+
+
+```
+
+## alfonsino plots
+
+```{r alfonsino baseline linf20 change in mean data}
+## baseline change in mean 
+alfonsino_plotdata20 <- alfonsino_alldatafull %>% 
+  filter(data.ID=="baseline"|data.ID=="Linf") %>% 
+  filter(Linf==38.816|Linf==48.52)
+
+alfonsino_plotdata20$data.ID <- factor(alfonsino_plotdata20$data.ID , levels = c("baseline", "Linf"), ordered = TRUE)
+
+```
+
+```{r 1 PANEL alfonsino baseline linf20 change in mean}
+#M/k plot
+alfonsino_baselineplot <- ggplot(data = alfonsino_plotdata20, aes(x = Mk.ratio, y = change.mean.percent, colour = change.max.percent, shape= data.ID)) +
+  geom_vline(xintercept = 1.34, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(x = "M/K (mortality/growth) ratio", y = expression("% change in mean length from initial scenario"), colour = expression("% change in \nmaximum length \nfrom initial scenario"), shape = "Scenario") +
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19), 
+                     labels = c("baseline"=expression("No change in L"[inf]), 
+                                "Linf"=expression("20% decline in L"[inf])))+
+ scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8)+
+  scale_y_continuous(breaks = seq(-60, 60, by=20)) +
+  theme(panel.grid.major = element_blank(),  
+    panel.grid.minor = element_blank(), 
+    axis.title = element_text(size=13),
+    axis.title.x = element_text(vjust = -0.2), 
+    axis.title.y = element_text(vjust = 1.5),
+    axis.text = element_text(size=10), 
+    legend.text = element_text(size=10), 
+    legend.title = element_text(size=12), 
+    legend.margin = margin(b= 20),
+    plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_alfonsino, aes(x = standardised.M.K, y= -60),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_alfonsino, aes(x = standardised.M.K, y = -43), sides = "b", inherit.aes = FALSE, linewidth=0.5)
+
+alfonsino_baselineplot
+
+#save plot 
+plot_path <- file.path(paste(project_dir, "03_results","main_plots", sep = "/"))
+
+ggsave("alfonsino_change_mean_baseline_linf20_fulldist.png",
+       plot = alfonsino_baselineplot, 
+       path = plot_path, 
+       width = 20, height = 15, units = "cm")
+#cvd_emulator(plot_path2, overwrite = FALSE, shiny.trace = FALSE)
+
+#mortality plot
+alfonsino_baselineplot_M <- ggplot(data = alfonsino_plotdata20, aes(x = M, y = change.mean.percent, colour = change.max.percent, shape = data.ID)) +
+  geom_vline(xintercept = 0.2954, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(x = "Mortality (M)", y = expression("% change in mean length from initial scenario"), colour = expression("% change in \nmaximum length \nfrom initial scenario"), shape = "Scenario") +
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19),
+                     labels = c("baseline"=expression("No change in L"[inf]), 
+                                "Linf"=expression("20% decline in L"[inf])))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8)+
+  scale_y_continuous(breaks = seq(-70, 60, by=20)) +
+  theme(panel.grid.major = element_blank(),  
+    panel.grid.minor = element_blank(), 
+    axis.title = element_text(size=13),
+    axis.title.x = element_text(vjust = -0.2), 
+    axis.title.y = element_text(vjust = 1.5),
+    axis.text = element_text(size=10), 
+    legend.text = element_text(size=10), 
+    legend.title = element_text(size=12),
+    legend.margin = margin(b= 20),
+    plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_alfonsino, aes(x = Hoenig.M, y= -75),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_alfonsino, aes(x = Hoenig.M, y = -43), sides = "b", inherit.aes = FALSE, linewidth=0.5)  
+
+alfonsino_baselineplot_M
+
+plot_path <- file.path(paste(project_dir, "03_results","main_plots", sep = "/"))
+
+ggsave("alfonsino_change_mean_baseline_linf20_M_fulldist.png",
+       plot = alfonsino_baselineplot_M, 
+       path = plot_path, 
+       width = 20, height = 15, units = "cm")
+
+alfonsino_baselineplot_K <- ggplot(data = alfonsino_plotdata20, aes(x = K, y = change.mean.percent, colour = change.max.percent, shape = data.ID)) +
+  geom_vline(xintercept = 0.2190, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(x = "Growth (K)", y = expression("% change in mean length from initial scenario"), colour = expression("% change in \nmaximum length \nfrom initial scenario"), shape = "Scenario") +
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19), 
+                     labels = c("baseline"=expression("No change in L"[inf]), 
+                                "Linf"=expression("20% decline in L"[inf])))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8)+
+  scale_y_continuous(breaks = seq(-70, 60, by=20)) +
+  theme(panel.grid.major = element_blank(),  
+    panel.grid.minor = element_blank(),
+    axis.title = element_text(size=13),
+    axis.title.x = element_text(vjust = -0.2), 
+    axis.title.y = element_text(vjust = 1.5),
+    axis.text = element_text(size=10), 
+    legend.text = element_text(size=10), 
+    legend.title = element_text(size=12),
+    legend.margin = margin(b= 20),
+    plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_alfonsino, aes(x = standardised.K, y= -75),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_alfonsino, aes(x = standardised.K, y = -43), sides = "b", inherit.aes = FALSE, linewidth=0.5)
+
+alfonsino_baselineplot_K
+
+plot_path <- file.path(paste(project_dir, "03_results","main_plots", sep = "/"))
+
+ggsave("alfonsino_change_mean_baseline_linf20_K_fulldist.png",
+       plot = alfonsino_baselineplot_K, 
+       path = plot_path, 
+       width = 20, height = 15, units = "cm")
+
+# 2 panel plot
+panel <- (alfonsino_baselineplot_M+alfonsino_baselineplot_K)+ 
+  plot_layout(ncol = 2, guides = "collect")+
+  plot_annotation(tag_levels = "a", tag_prefix = "(", tag_suffix = ")") & theme(plot.tag.position = c(0.04, 1.02))
+panel
+
+ggsave("alfonsino_change_mean_baseline_linf20_MKpanel_fulldist.png",
+       plot = panel, 
+       path = plot_path, 
+       width = 30, height = 14, units = "cm")
+
+
+```
+
+```{r alfonsino baseline linf20 truncated 25 change in mean data}
+## baseline change in mean 
+alfonsino25_plotdata20 <- alfonsino_alldata25 %>% 
+  filter(data.ID=="baseline"|data.ID=="Linf") %>% 
+  filter(Linf==38.816|Linf==48.52)
+
+alfonsino25_plotdata20$data.ID <- factor(alfonsino25_plotdata20$data.ID , levels = c("baseline", "Linf"), ordered = TRUE)
+
+```
+
+```{r 1 PANEL alfonsino baseline linf20 truncated 25 change in mean}
+#M/k plot
+alfonsino_baselineplot_truncated25 <- ggplot(data = alfonsino25_plotdata20, aes(x = Mk.ratio, y = change.mean.percent, colour = change.max.percent, shape= data.ID)) +
+  geom_vline(xintercept = 1.34, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(x = "M/K (mortality/growth) ratio", y = expression("% change in mean length from initial scenario"), colour = expression("% change in \nmaximum length \nfrom initial scenario"), shape = "Scenario") +
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19), 
+                     labels = c("baseline"=expression("No change in L"[inf]), 
+                                "Linf"=expression("20% decline in L"[inf])))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8)+
+  scale_y_continuous(breaks = seq(-40, 60, by=20)) +
+  theme(panel.grid.major = element_blank(),  
+    panel.grid.minor = element_blank(), 
+    axis.title = element_text(size=13),
+    axis.title.x = element_text(vjust = -0.2), 
+    axis.title.y = element_text(vjust = 1.5),
+    axis.text = element_text(size=10), 
+    legend.text = element_text(size=10), 
+    legend.title = element_text(size=12), 
+    legend.margin = margin(b= 20),
+    plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_alfonsino, aes(x = standardised.M.K, y= -45),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_alfonsino, aes(x = standardised.M.K, y = -43), sides = "b", inherit.aes = FALSE, linewidth=0.5)  
+alfonsino_baselineplot_truncated25
+
+plot_path <- file.path(paste(project_dir, "03_results","main_plots", sep = "/"))
+
+ggsave("alfonsino_change_mean_baseline_linf20_25dist.png",
+       plot = alfonsino_baselineplot_truncated25, 
+       path = plot_path, 
+       width = 20, height = 15, units = "cm")
+```
+
+```{r alfonsino baseline linf20 truncated 66 change in mean data}
+## baseline change in mean 
+alfonsino66_plotdata20 <- alfonsino_alldata66 %>% 
+  filter(data.ID=="baseline"|data.ID=="Linf") %>% 
+  filter(Linf==38.816|Linf==48.52)
+
+alfonsino66_plotdata20$data.ID <- factor(alfonsino66_plotdata20$data.ID , levels = c("baseline", "Linf"), ordered = TRUE)
+
+
+```
+
+```{r 1 PANEL alfonsino baseline linf20 truncated 66 change in mean}
+#M/k plot
+alfonsino_baselineplot_truncated66 <- ggplot(data = alfonsino66_plotdata20, aes(x = Mk.ratio, y = change.mean.percent, colour = change.max.percent, shape= data.ID)) +
+  geom_vline(xintercept = 1.34, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(x = "M/K (mortality/growth) ratio", y = expression("% change in mean length from initial scenario"), colour = expression("% change in \nmaximum length \nfrom initial scenario"), shape = "Scenario") +
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19), 
+                     labels = c("baseline"=expression("No change in L"[inf]), 
+                                "Linf"=expression("20% decline in L"[inf])))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8)+
+  scale_y_continuous(breaks = seq(-30, 60, by=10)) +
+  theme(panel.grid.major = element_blank(),  
+    panel.grid.minor = element_blank(), 
+    axis.title = element_text(size=13),
+    axis.title.x = element_text(vjust = -0.2), 
+    axis.title.y = element_text(vjust = 1.5),
+    axis.text = element_text(size=10), 
+    legend.text = element_text(size=10), 
+    legend.title = element_text(size=12), 
+    legend.margin = margin(b= 20),
+    plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_alfonsino, aes(x = standardised.M.K, y= -33),width = 1, inherit.aes = FALSE) + 
+  geom_rug(data = mk_alfonsino, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+alfonsino_baselineplot_truncated66
+
+plot_path <- file.path(paste(project_dir, "03_results","main_plots", sep = "/"))
+
+ggsave("alfonsino_change_mean_baseline_linf20_66dist.png",
+       plot = alfonsino_baselineplot_truncated66, 
+       path = plot_path, 
+       width = 20, height = 15, units = "cm")
+```
+
+```{r alfonsino baseline linf20 truncated facet}
+alfonsino_truncated_facet_data <- rbind(alfonsino_plotdata20, alfonsino25_plotdata20, alfonsino66_plotdata20)
+
+alfonsino_truncated_facet_data <- alfonsino_truncated_facet_data %>%
+  mutate(run.name = case_when(
+    run.name == "full dist" ~ "Full distribution",
+    run.name == "sdist truncated 25%" ~ "25% truncated distribution",
+    run.name == "sdist truncated 66%" ~ "66% truncated distribution",
+    TRUE ~ as.character(data.ID)))
+alfonsino_truncated_facet_data$run.name <- factor(alfonsino_truncated_facet_data$run.name , 
+                                         levels = c("Full distribution", "25% truncated distribution","66% truncated distribution"),
+                                         ordered = TRUE)
+
+alfonsino_truncated_facet_plot <- ggplot(data = alfonsino_truncated_facet_data, aes(x = Mk.ratio, y = change.mean.percent, colour = change.max.percent, shape= data.ID)) +
+  geom_vline(xintercept = 1.34, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(x = "M/K (mortality/growth) ratio", y = expression("% change in mean length from initial scenario"), colour = expression("% change in \nmaximum length \nfrom initial scenario"), shape = "Scenario") +
+  theme_classic() +
+  facet_wrap(.~ run.name, ncol=3)+
+  scale_shape_manual(values = c(3, 19), 
+                     labels = c("baseline"=expression("No change in L"[inf]), 
+                                "Linf"=expression("20% decline in L"[inf])))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8)+
+  scale_y_continuous(limits = c(-70, 65), breaks = seq(-60, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8), 
+        strip.background = element_blank(),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(), 
+        axis.title = element_text(size=13),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 1.5),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=10), 
+        legend.title = element_text(size=12), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_alfonsino, aes(x = standardised.M.K, y= -63),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_alfonsino, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+alfonsino_truncated_facet_plot
+
+plot_path <- file.path(paste(project_dir, "03_results","main_plots",sep = "/"))
+
+ggsave("alfonsino_change_mean_baseline_linf20_alfonsino_truncated_facet.png",
+       plot = alfonsino_truncated_facet_plot, 
+       path = plot_path, 
+       width = 35, height = 15, units = "cm")
+
+```
+
+
+
+```{r alfonsino baseline linf20 truncated comparison}
+cbPalette <- c("#CC79A7", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00","#000000" )
+
+truncated_comp <- rbind(alfonsino_plotdata20, alfonsino25_plotdata20, alfonsino66_plotdata20)
+
+truncated_comp <- truncated_comp %>%
+  mutate(run.name = case_when(
+    run.name == "full dist" ~ "Full distribution",
+     run.name == "sdist truncated 25%" ~ "Truncated 25%",
+    run.name == "sdist truncated 66%" ~ "Truncated 66%",
+    TRUE ~ as.character(run.name)))
+
+truncated_comp$run.name <- factor(truncated_comp$run.name, levels = c("Full distribution", "Truncated 25%","Truncated 66%"), ordered = TRUE)
+
+alfonsino_truncated_compare <- ggplot(data = truncated_comp, aes(x = Mk.ratio, y = change.mean.percent, colour = run.name)) +
+  geom_vline(xintercept = 1.34, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point(size=1) +
+  labs(x = "M/k (mortality/growth) ratio", y = expression("% change in mean length from initial scenario"), colour = expression("Size distribution")) +
+  theme_classic() +
+  scale_color_manual(values = cbPalette)+
+  facet_wrap(.~data.ID)+
+  scale_y_continuous(limits = c(-80, 63), breaks = seq(-70, 70, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8), 
+    panel.grid.major = element_blank(),  
+    panel.grid.minor = element_blank(),
+    strip.background = element_blank(),
+    axis.title = element_text(size=13),
+    axis.title.x = element_text(vjust = -0.2), 
+    axis.title.y = element_text(vjust = 1.5),
+    axis.text = element_text(size=10), 
+    legend.text = element_text(size=10), 
+    legend.title = element_text(size=12), 
+   legend.margin = margin(b= 20),
+    plot.margin = margin(t=25, r=25, l=25, b=25))+
+  geom_boxplot(data = mk_alfonsino, aes(x = standardised.M.K, y= -75),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_alfonsino, aes(x = standardised.M.K, y = -43), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+
+alfonsino_truncated_compare
+
+plot_path <- file.path(paste(project_dir, "03_results","main_plots", sep = "/"))
+
+ggsave("alfonsino_change_mean_baseline_linf20_truncated_comparison.png",
+       plot = alfonsino_truncated_compare, 
+       path = plot_path, 
+       width = 25, height = 15, units = "cm")
+
+```
+
+
+```{r 1 PANEL alfonsino baseline linf20 change in mean increasing k}
+## baseline change in mean 
+alfonsino_plotdata20k <- alfonsino_alldatak %>% 
+  filter(scenario!="baseline" ) %>% 
+  filter(data.ID=="baseline"|data.ID=="Linf") %>% 
+  filter(Linf==38.816|Linf==48.52)
+
+alfonsino_plotdata20k$data.ID <- factor(alfonsino_plotdata20k$data.ID , levels = c("baseline", "Linf"), ordered = TRUE)
+
+alfonsino_baselineplotk <- ggplot(data = alfonsino_plotdata20k, aes(x = K, y = change.mean.percent, size=Mk.ratio, colour = data.ID)) +
+  geom_vline(xintercept = 0.2190, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(x = "Growth (K)", y = expression("% change in mean length from initial scenario"), colour = expression("Scenario"), size="M/K ratio") +
+  theme_classic() +
+  scale_colour_manual(values = c("#CC79A7", "#56B4E9"), 
+                     labels = c("baseline"=expression("No change in L"[inf]), 
+                                "Linf"=expression("20% decline in L"[inf])))+
+  scale_y_continuous(limits = c(-25, 42), breaks = seq(-20, 40, by=10)) +
+  scale_x_continuous(limits = c(0.12, 0.45)) +
+  theme( panel.grid.major = element_blank(),  
+    panel.grid.minor = element_blank(),
+    strip.background = element_blank(), 
+    axis.title = element_text(size=13),
+    axis.title.x = element_text(vjust = -0.2), 
+    axis.title.y = element_text(vjust = 1.5),
+    axis.text = element_text(size=10), 
+    legend.text = element_text(size=10), 
+    legend.title = element_text(size=12), 
+    legend.margin = margin(b= 20),
+    plot.margin = margin(t=25, r=25, l=25, b=25))+
+  geom_boxplot(data = mk_alfonsino, aes(x = standardised.K, y= -23.5),width = 2, inherit.aes = FALSE) + 
+  geom_rug(data = mk_alfonsino, aes(x = standardised.K, y = -23.5), sides = "b", inherit.aes = FALSE, linewidth=0.5)
+
+alfonsino_baselineplotk
+
+plot_path <- file.path(paste(project_dir, "03_results","main_plots", sep = "/"))
+
+ggsave("alfonsino_change_mean_baselinek_Linfk20.png",
+       plot = alfonsino_baselineplotk, 
+       path = plot_path, 
+       width = 20, height = 15, units = "cm")
+```
+
+```{r alfonsino baseline linf20 change in mean truncated increasing k}
+cbPalette <- c("#CC79A7", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00","#000000" )
+truncatedk_comp <- rbind(alfonsino_alldatak, alfonsino_alldata25k, alfonsino_alldata66k)
+
+truncatedk_comp20 <- truncatedk_comp %>%
+  filter(scenario!="baseline") %>% 
+  filter(data.ID=="baseline"|data.ID=="Linf") %>% 
+  filter(Linf==38.816|Linf==48.52) %>% 
+  mutate(run.name = case_when(
+    run.name == "full dist" ~ "Full distribution",
+    run.name == "sdist truncated 25%" ~ "Truncated 25%",
+    run.name == "sdist truncated 66%" ~ "Truncated 66%",
+    TRUE ~ as.character(run.name)))
+
+truncatedk_comp20$run.name <- factor(truncatedk_comp20$run.name, levels = c("Full distribution", "Truncated 25%","Truncated 66%"), ordered = TRUE)
+
+truncatedk_comp20$data.ID <- factor(truncatedk_comp20$data.ID , levels = c("baseline", "Linf"), ordered = TRUE)()
+
+alfonsinok_truncated_compare <- ggplot(data = truncatedk_comp20, aes(x = K, y = change.mean.percent, colour = run.name, shape = data.ID)) +
+  geom_vline(xintercept = 0.2190, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point(size = 1) +
+  labs(x = "Growth (K)", y = expression("% change mean length from initial scenario"), colour = expression("Size distribution"), shape="Scenario") +
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19), 
+                     labels = c("baseline"=expression("No change in L"[inf]), 
+                                "Linf"=expression("20% decline in L"[inf])))+
+  scale_color_manual(values = cbPalette)+
+  scale_y_continuous(limits = c(-25, 41), breaks = seq(-20, 45, by=10)) +
+  scale_x_continuous(limits = c(0.12, 0.45)) +
+  theme(strip.text.x = element_text(size = 8, face = "bold", vjust = 0.8), 
+    panel.grid.major = element_blank(),  
+    panel.grid.minor = element_blank(),
+    strip.background = element_blank(), 
+    axis.title = element_text(size=13),
+    axis.title.x = element_text(vjust = -0.2), 
+    axis.title.y = element_text(vjust = 1.5),
+    axis.text = element_text(size=10), 
+    legend.text = element_text(size=10), 
+    legend.title = element_text(size=12), 
+    plot.margin = margin(t=25, r=25, l=25, b=25))+
+  geom_boxplot(data = mk_alfonsino, aes(x = standardised.K, y= -23.5),width = 1.5, inherit.aes = FALSE) + 
+  geom_rug(data = mk_alfonsino, aes(x = standardised.K, y = -23.5), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+
+alfonsinok_truncated_compare
+
+plot_path <- file.path(paste(project_dir, "03_results","main_plots", sep = "/"))
+
+ggsave("alfonsino_change_mean_baselinek_Linfk20_truncated_comparison.png",
+       plot = alfonsinok_truncated_compare, 
+       path = plot_path, 
+       width = 20, height = 15, units = "cm")
+
+
+
+```
+
+#SWORDFISH
+
+## swordfish set up data
+
+```{r swordfish load all data}
+#rm(list=ls()) # clear workspace
+project_dir <- here::here()
+
+raw_data <- file.path(paste(project_dir, "0_data", "Prince_2023_MK_precise.csv", sep = "/"))
+mk <- read_csv(raw_data) #read in raw data
+
+mk_swordfish <- mk %>% filter(species == "Xiphias gladius")
+summary(mk_swordfish)
+
+#baseline - step 1
+baselinefull_swordfish <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output1", 
+                                         "08_sim_output_baseline_swordfish_fulldist.csv", sep = "/"))
+swordfish_baselinefull <- read_csv(baselinefull_swordfish)
+swordfish_baselinefull$Linf <- factor(swordfish_baselinefull$Linf) # make Linf discrete
+
+#increasing k
+baselinek_swordfish <- file.path(paste(project_dir, "03_results", 
+                                         "output1", 
+                                         "08_sim_output_baselinek_swordfish_fulldist.csv", sep = "/"))
+swordfish_baselinek <- read_csv(baselinek_swordfish)
+swordfish_baselinek$Linf <- factor(swordfish_baselinek$Linf) # make Linf discrete
+
+
+#truncated 25%
+baseline25_swordfish <- file.path(paste(project_dir, 
+                                         "03_results", 
+                                         "output1", 
+                                         "08_sim_output_baseline_swordfish_25dist.csv", sep = "/"))
+swordfish_baseline25 <- read_csv(baseline25_swordfish)
+swordfish_baseline25$Linf <- factor(swordfish_baseline25$Linf) # make Linf discrete
+
+baseline25k_swordfish <- file.path(paste(project_dir, 
+                                        "03_results", 
+                                         "output1", 
+                                         "08_sim_output_baselinek_swordfish_25dist.csv", sep = "/"))
+swordfish_baseline25k <- read_csv(baseline25k_swordfish)
+swordfish_baseline25k$Linf <- factor(swordfish_baseline25k$Linf) # make Linf discrete
+
+#truncated 66%
+baseline66_swordfish <- file.path(paste(project_dir, 
+                                        "03_results", 
+                                         "output1", 
+                                         "08_sim_output_baseline_swordfish_66dist.csv", sep = "/"))
+swordfish_baseline66 <- read_csv(baseline66_swordfish)
+swordfish_baseline66$Linf <- factor(swordfish_baseline66$Linf) # make Linf discrete
+
+baseline66k_swordfish <- file.path(paste(project_dir, 
+                                         "03_results", 
+                                         "output1", 
+                                         "08_sim_output_baselinek_swordfish_66dist.csv", sep = "/"))
+swordfish_baseline66k <- read_csv(baseline66k_swordfish)
+swordfish_baseline66k$Linf <- factor(swordfish_baseline66k$Linf) # make Linf discrete
+
+# linf decrease - step 2
+Linffull_swordfish <- file.path(paste(project_dir, 
+                                        "03_results", 
+                                         "output2", 
+                                         "08_sim_output_Linf_swordfish_fulldist.csv", sep = "/"))
+swordfish_Linffull <- read_csv(Linffull_swordfish)
+swordfish_Linffull$Linf <- factor(swordfish_Linffull$Linf) # make Linf discrete
+
+#increasing k
+Linfk_swordfish <- file.path(paste(project_dir, 
+                                        "03_results", 
+                                         "output2", 
+                                         "08_sim_output_Linfk_swordfish_fulldist.csv", sep = "/"))
+swordfish_Linfk <- read_csv(Linfk_swordfish)
+swordfish_Linfk$Linf <- factor(swordfish_Linfk$Linf) # make Linfk discrete
+
+
+#truncated 25
+Linf25_swordfish <- file.path(paste(project_dir, 
+                                        "03_results", 
+                                         "output2", 
+                                         "08_sim_output_Linf_swordfish_25dist.csv", sep = "/"))
+swordfish_Linf25 <- read_csv(Linf25_swordfish)
+swordfish_Linf25$Linf <- factor(swordfish_Linf25$Linf) # make Linf25 discrete
+
+Linf25k_swordfish <- file.path(paste(project_dir, 
+                                         "03_results", 
+                                         "output2", 
+                                         "08_sim_output_Linfk_swordfish_25dist.csv", sep = "/"))
+swordfish_Linf25k <- read_csv(Linf25k_swordfish)
+swordfish_Linf25k$Linf <- factor(swordfish_Linf25k$Linf) # make Linfk discrete
+
+#truncated 66
+Linf66_swordfish <- file.path(paste(project_dir, 
+                                         "03_results", 
+                                         "output2", 
+                                         "08_sim_output_Linf_swordfish_66dist.csv", sep = "/"))
+swordfish_Linf66 <- read_csv(Linf66_swordfish)
+swordfish_Linf66$Linf <- factor(swordfish_Linf66$Linf) # make Linf66 discrete
+
+Linf66k_swordfish <- file.path(paste(project_dir, 
+                                        "03_results", 
+                                         "output2", 
+                                         "08_sim_output_Linfk_swordfish_66dist.csv", sep = "/"))
+swordfish_Linf66k <- read_csv(Linf66k_swordfish)
+swordfish_Linf66k$Linf <- factor(swordfish_Linf66k$Linf) # make Linfk discrete
+
+
+```
+
+```{r swordfish combine data}
+swordfish_baselinefull <- swordfish_baselinefull %>% mutate(data.ID = "baseline")
+swordfish_baseline25 <- swordfish_baseline25 %>% mutate(data.ID = "baseline")
+swordfish_baseline66 <- swordfish_baseline66 %>% mutate(data.ID = "baseline")
+swordfish_Linffull <- swordfish_Linffull %>% mutate(data.ID = "Linf") 
+swordfish_Linf25 <- swordfish_Linf25 %>% mutate(data.ID = "Linf") 
+swordfish_Linf66 <- swordfish_Linf66 %>% mutate(data.ID = "Linf") 
+swordfish_baselinek <- swordfish_baselinek %>% mutate(data.ID = "baseline")
+swordfish_baseline25k <- swordfish_baseline25k %>% mutate(data.ID = "baseline")
+swordfish_baseline66k <- swordfish_baseline66k %>% mutate(data.ID = "baseline")
+swordfish_Linfk <- swordfish_Linfk %>% mutate(data.ID = "Linf") 
+swordfish_Linf25k <- swordfish_Linf25k %>% mutate(data.ID = "Linf")
+swordfish_Linf66k <- swordfish_Linf66k %>% mutate(data.ID = "Linf")
+
+swordfish_alldatafull <- rbind(swordfish_baselinefull, swordfish_Linffull)
+swordfish_alldatak <- rbind(swordfish_baselinek, swordfish_Linfk)
+swordfish_alldata25k <- rbind(swordfish_baseline25k, swordfish_Linf25k)
+swordfish_alldata66k <- rbind(swordfish_baseline66k, swordfish_Linf66k)
+swordfish_alldata25 <- rbind(swordfish_baseline25, swordfish_Linf25)
+swordfish_alldata66 <- rbind(swordfish_baseline66, swordfish_Linf66)
+
+swordfish_alldatafull$data.ID <- factor(swordfish_alldatafull$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+swordfish_alldatak$data.ID <- factor(swordfish_alldatak$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+swordfish_alldata25k$data.ID <- factor(swordfish_alldata25k$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+swordfish_alldata66k$data.ID <- factor(swordfish_alldata66k$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+swordfish_alldata25$data.ID <- factor(swordfish_alldata25$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+swordfish_alldata66$data.ID <- factor(swordfish_alldata66$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+
+
+```
+
+## swordfish plots
+
+```{r swordfish baseline linf20 change in mean data}
+## baseline change in mean 
+swordfish_plotdata20 <- swordfish_alldatafull %>% 
+  filter(data.ID=="baseline"|data.ID=="Linf") %>% 
+  filter(Linf==	146.528|Linf==183.16)
+
+swordfish_plotdata20$data.ID <- factor(swordfish_plotdata20$data.ID , levels = c("baseline", "Linf"), ordered = TRUE)
+
+```
+
+```{r 1 PANEL swordfish baseline linf20 change in mean}
+#M/k plot
+swordfish_baselineplot <- ggplot(data = swordfish_plotdata20, aes(x = Mk.ratio, y = change.mean.percent, colour = change.max.percent, shape= data.ID)) +
+  geom_vline(xintercept = 1.1251, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(x = "M/K (mortality/growth) ratio", y = expression("% change in mean length from initial scenario"), colour = expression("% change in \nmaximum length \nfrom initial scenario"), shape = "Scenario") +
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19), 
+                     labels = c("baseline"=expression("No change in L"[inf]), 
+                                "Linf"=expression("20% decline in L"[inf])))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8)+
+  scale_y_continuous(breaks = seq(-70, 60, by=20)) +
+  theme(panel.grid.major = element_blank(),  
+    panel.grid.minor = element_blank(), 
+    axis.title = element_text(size=13),
+    axis.title.x = element_text(vjust = -0.2), 
+    axis.title.y = element_text(vjust = 1.5),
+    axis.text = element_text(size=10), 
+    legend.text = element_text(size=10), 
+    legend.title = element_text(size=12), 
+    legend.margin = margin(b= 20),
+    plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_swordfish, aes(x = standardised.M.K, y= -63),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_swordfish, aes(x = standardised.M.K, y = -43), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+
+swordfish_baselineplot
+
+#save plot 
+plot_path <- file.path(paste(project_dir,"03_results", "main_plots", sep = "/"))
+ggsave("swordfish_change_mean_baseline_linf20_fulldist.png",
+       plot = swordfish_baselineplot, 
+       path = plot_path, 
+       width = 20, height = 15, units = "cm")
+
+#mortality plot
+swordfish_baselineplot_M <- ggplot(data = swordfish_plotdata20, aes(x = M, y = change.mean.percent, colour = change.max.percent, shape = data.ID)) +
+  geom_vline(xintercept = 0.4399, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(x = "Mortality (M)", y = expression("% change in mean length from initial scenario"), colour = expression("% change in \nmaximum length \nfrom initial scenario"), shape = "Scenario") +
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19), 
+                     labels = c("baseline"=expression("No change in L"[inf]), 
+                                "Linf"=expression("20% decline in L"[inf])))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8)+
+  scale_y_continuous(breaks = seq(-70, 60, by=20)) +
+  theme(panel.grid.major = element_blank(),  
+    panel.grid.minor = element_blank(), 
+    axis.title = element_text(size=13),
+    axis.title.x = element_text(vjust = -0.2), 
+    axis.title.y = element_text(vjust = 1.5),
+    axis.text = element_text(size=10), 
+    legend.text = element_text(size=10), 
+    legend.title = element_text(size=12),
+    legend.margin = margin(b= 20),
+    plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_swordfish, aes(x = Hoenig.M, y= -75),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_swordfish, aes(x = Hoenig.M, y = -43), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+
+swordfish_baselineplot_M
+
+plot_path <- file.path(paste(project_dir, "03_results", "main_plots",sep = "/"))
+
+ggsave("swordfish_change_mean_baseline_linf20_M_fulldist.png",
+       plot = swordfish_baselineplot_M, 
+       path = plot_path, 
+       width = 20, height = 15, units = "cm")
+
+swordfish_baselineplot_K <- ggplot(data = swordfish_plotdata20, aes(x = K, y = change.mean.percent, colour = change.max.percent, shape = data.ID)) +
+  geom_vline(xintercept = 0.391, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(x = "Growth (K)", y = expression("% change in mean length from initial scenario"), colour = expression("% change in \nmaximum length \nfrom initial scenario"), shape = "Scenario") +
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19), 
+                     labels = c("baseline"=expression("No change in L"[inf]), 
+                                "Linf"=expression("20% decline in L"[inf])))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8)+
+  scale_y_continuous(breaks = seq(-70, 60, by=20)) +
+  theme(panel.grid.major = element_blank(),  
+    panel.grid.minor = element_blank(),
+    axis.title = element_text(size=13),
+    axis.title.x = element_text(vjust = -0.2), 
+    axis.title.y = element_text(vjust = 1.5),
+    axis.text = element_text(size=10), 
+    legend.text = element_text(size=10), 
+    legend.title = element_text(size=12),
+    legend.margin = margin(b= 20),
+    plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_swordfish, aes(x = standardised.K, y= -75),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_swordfish, aes(x = standardised.K, y = -43), sides = "b", inherit.aes = FALSE, linewidth=0.5)
+
+swordfish_baselineplot_K
+
+plot_path <- file.path(paste(project_dir, "03_results", "main_plots", sep = "/"))
+
+ggsave("swordfish_change_mean_baseline_linf20_K_fulldist.png",
+       plot = swordfish_baselineplot_K, 
+       path = plot_path, 
+       width = 20, height = 15, units = "cm")
+
+# 2 panel plot
+panel <- (swordfish_baselineplot_M+swordfish_baselineplot_K)+ 
+  plot_layout(ncol = 2, guides = "collect")+
+  plot_annotation(tag_levels = "a", tag_prefix = "(", tag_suffix = ")") & theme(plot.tag.position = c(0.04, 1.02))
+panel
+
+ggsave("swordfish_change_mean_baseline_linf20_MKpanel_fulldist.png",
+       plot = panel, 
+       path = plot_path, 
+       width = 30, height = 14, units = "cm")
+
+
+```
+
+```{r swordfish baseline linf20 truncated 25 change in mean data}
+## baseline change in mean 
+swordfish25_plotdata20 <- swordfish_alldata25 %>% 
+  filter(data.ID=="baseline"|data.ID=="Linf") %>% 
+  filter(Linf==146.528|Linf==183.16)
+
+swordfish25_plotdata20$data.ID <- factor(swordfish25_plotdata20$data.ID , levels = c("baseline", "Linf"), ordered = TRUE)
+
+```
+
+```{r 1 PANEL swordfish baseline linf20 truncated 25 change in mean}
+#M/k plot
+swordfish_baselineplot_truncated25 <- ggplot(data = swordfish25_plotdata20, aes(x = Mk.ratio, y = change.mean.percent, colour = change.max.percent, shape= data.ID)) +
+  geom_vline(xintercept = 1.1251, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(x = "M/K (mortality/growth) ratio", y = expression("% change in mean length from initial scenario"), colour = expression("% change in \nmaximum length \nfrom initial scenario"), shape = "Scenario") +
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19), 
+                     labels = c("baseline"=expression("No change in L"[inf]), 
+                                "Linf"=expression("20% decline in L"[inf])))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8)+
+  scale_y_continuous(breaks = seq(-50, 60, by=10)) +
+  theme(panel.grid.major = element_blank(),  
+    panel.grid.minor = element_blank(), 
+    axis.title = element_text(size=13),
+    axis.title.x = element_text(vjust = -0.2), 
+    axis.title.y = element_text(vjust = 1.5),
+    axis.text = element_text(size=10), 
+    legend.text = element_text(size=10), 
+    legend.title = element_text(size=12), 
+    legend.margin = margin(b= 20),
+    plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_swordfish, aes(x = standardised.M.K, y= -48),width = 1.5, inherit.aes = FALSE) + 
+  geom_rug(data = mk_swordfish, aes(x = standardised.M.K, y = -43), sides = "b", inherit.aes = FALSE, linewidth=0.5)
+swordfish_baselineplot_truncated25
+
+plot_path <- file.path(paste(project_dir, "03_results", "main_plots",sep = "/"))
+
+ggsave("swordfish_change_mean_baseline_linf20_25dist.png",
+       plot = swordfish_baselineplot_truncated25, 
+       path = plot_path, 
+       width = 20, height = 15, units = "cm")
+```
+
+```{r swordfish baseline linf20 truncated 66 change in mean data}
+## baseline change in mean 
+swordfish66_plotdata20 <- swordfish_alldata66 %>% 
+  filter(data.ID=="baseline"|data.ID=="Linf") %>% 
+  filter(Linf==146.528|Linf==183.16)
+
+swordfish66_plotdata20$data.ID <- factor(swordfish66_plotdata20$data.ID , levels = c("baseline", "Linf"), ordered = TRUE)
+
+```
+
+```{r 1 PANEL swordfish baseline linf20 truncated 66 change in mean}
+#M/k plot
+swordfish_baselineplot_truncated66 <- ggplot(data = swordfish66_plotdata20, aes(x = Mk.ratio, y = change.mean.percent, colour = change.max.percent, shape= data.ID)) +
+  geom_vline(xintercept = 1.1251, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(x = "M/K (mortality/growth) ratio", y = expression("% change in mean length from initial scenario"), colour = expression("% change in \nmaximum length \nfrom initial scenario"), shape = "Scenario") +
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19), 
+                     labels = c("baseline"=expression("No change in L"[inf]), 
+                                "Linf"=expression("20% decline in L"[inf])))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8)+
+  scale_y_continuous(breaks = seq(-30, 60, by=10)) +
+  theme(panel.grid.major = element_blank(),  
+    panel.grid.minor = element_blank(), 
+    axis.title = element_text(size=13),
+    axis.title.x = element_text(vjust = -0.2), 
+    axis.title.y = element_text(vjust = 1.5),
+    axis.text = element_text(size=10), 
+    legend.text = element_text(size=10), 
+    legend.title = element_text(size=12), 
+    legend.margin = margin(b= 20),
+    plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_swordfish, aes(x = standardised.M.K, y= -35),width = 0.8, inherit.aes = FALSE) + 
+  geom_rug(data = mk_swordfish, aes(x = standardised.M.K, y = -35), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+swordfish_baselineplot_truncated66
+
+plot_path <- file.path(paste(project_dir, "03_results", "main_plots", sep = "/"))
+
+ggsave("swordfish_change_mean_baseline_linf20_66dist.png",
+       plot = swordfish_baselineplot_truncated66, 
+       path = plot_path, 
+       width = 20, height = 15, units = "cm")
+```
+
+
+```{r swordfish baseline linf20 truncated facet}
+swordfish_truncated_facet_data <- rbind(swordfish_plotdata20, swordfish25_plotdata20, swordfish66_plotdata20)
+
+swordfish_truncated_facet_data <- swordfish_truncated_facet_data %>%
+  mutate(run.name = case_when(
+    run.name == "full dist" ~ "Full distribution",
+    run.name == "sdist truncated 25%" ~ "25% truncated distribution",
+    run.name == "sdist truncated 66%" ~ "66% truncated distribution",
+    TRUE ~ as.character(data.ID)))
+swordfish_truncated_facet_data$run.name <- factor(swordfish_truncated_facet_data$run.name , 
+                                         levels = c("Full distribution", "25% truncated distribution","66% truncated distribution"),
+                                         ordered = TRUE)
+
+swordfish_truncated_facet_plot <- ggplot(data = swordfish_truncated_facet_data, aes(x = Mk.ratio, y = change.mean.percent, colour = change.max.percent, shape= data.ID)) +
+  geom_vline(xintercept = 1.1251, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(x = "M/K (mortality/growth) ratio", y = expression("% change in mean length from initial scenario"), colour = expression("% change in \nmaximum length \nfrom initial scenario"), shape = "Scenario") +
+  theme_classic() +
+  facet_wrap(.~ run.name, ncol=3)+
+  scale_shape_manual(values = c(3, 19), 
+                     labels = c("baseline"=expression("No change in L"[inf]), 
+                                "Linf"=expression("10% decline in L"[inf])))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8)+
+  scale_y_continuous(limits = c(-70, 65), breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8), 
+        strip.background = element_blank(),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(), 
+        axis.title = element_text(size=13),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 1.5),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=10), 
+        legend.title = element_text(size=12), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_swordfish, aes(x = standardised.M.K, y= -68),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_swordfish, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+swordfish_truncated_facet_plot
+
+plot_path <- file.path(paste(project_dir, "03_results", "main_plots", sep = "/"))
+
+ggsave("swordfish_change_mean_baseline_linf20_swordfish_truncated_facet.png",
+       plot = swordfish_truncated_facet_plot, 
+       path = plot_path, 
+       width = 38, height = 15, units = "cm")
+
+```
+
+```{r swordfish baseline linf20 truncated comparison}
+cbPalette <- c("#CC79A7", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00","#000000" )
+
+truncated_comp <- rbind(swordfish_plotdata20, swordfish25_plotdata20, swordfish66_plotdata20)
+
+truncated_comp <- truncated_comp %>%
+  mutate(run.name = case_when(
+    run.name == "full dist" ~ "Full distribution",
+     run.name == "sdist truncated 25%" ~ "Truncated 25%",
+    run.name == "sdist truncated 66%" ~ "Truncated 66%",
+    TRUE ~ as.character(run.name)))
+
+truncated_comp$run.name <- factor(truncated_comp$run.name, levels = c("Full distribution", "Truncated 25%","Truncated 66%"), ordered = TRUE)
+
+swordfish_truncated_compare <- ggplot(data = truncated_comp, aes(x = Mk.ratio, y = change.mean.percent, colour = run.name)) +
+  geom_vline(xintercept = 1.1251, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point(size=1) +
+  labs(x = "M/k (mortality/growth) ratio", y = expression("% change in mean length from initial scenario"), colour = expression("Size distribution")) +
+  theme_classic() +
+  scale_color_manual(values = cbPalette)+
+  facet_wrap(.~data.ID)+
+  rotate_x_facet_text(align = 0.5, angle = 0)+
+  scale_y_continuous(breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8), 
+    panel.grid.major = element_blank(),  
+    panel.grid.minor = element_blank(),
+    strip.background = element_blank(),
+    axis.title = element_text(size=13),
+    axis.title.x = element_text(vjust = -0.2), 
+    axis.title.y = element_text(vjust = 1.5),
+    axis.text = element_text(size=10), 
+    legend.text = element_text(size=10), 
+    legend.title = element_text(size=12), 
+   legend.margin = margin(b= 20),
+    plot.margin = margin(t=25, r=25, l=25, b=25))+
+  geom_boxplot(data = mk_swordfish, aes(x = standardised.M.K, y= -70),width = 2.5, inherit.aes = FALSE) + 
+  geom_rug(data = mk_swordfish, aes(x = standardised.M.K, y = -43), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+
+swordfish_truncated_compare
+
+plot_path <- file.path(paste(project_dir, "03_results", "main_plots", sep = "/"))
+
+ggsave("swordfish_change_mean_baseline_linf20_truncated_comparison.png",
+       plot = swordfish_truncated_compare, 
+       path = plot_path, 
+       width = 25, height = 15, units = "cm")
+
+```
+
+
+```{r 1 PANEL swordfish baseline linf20 change in mean increasing k}
+## baseline change in mean 
+swordfish_plotdata20k <- swordfish_alldatak %>% 
+  filter(scenario!="baseline" ) %>% 
+  filter(data.ID=="baseline"|data.ID=="Linf") %>% 
+  filter(Linf==146.528|Linf==183.16)
+
+swordfish_plotdata20k$data.ID <- factor(swordfish_plotdata20k$data.ID , levels = c("baseline", "Linf"), ordered = TRUE)
+
+swordfish_baselineplotk <- ggplot(data = swordfish_plotdata20k, aes(x = K, y = change.mean.percent, size = Mk.ratio, colour = data.ID)) +
+  geom_vline(xintercept = 0.391, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(x = "Growth (K)", y = expression("% change in mean length from initial scenario"), size = expression("M/K ratio"), colour="Scenario") +
+  theme_classic() +
+  scale_colour_manual(values = c("#CC79A7", "#56B4E9"), 
+                     labels = c("baseline"=expression("No change in L"[inf]), 
+                                "Linf"=expression("20% decline in L"[inf])))+
+  scale_y_continuous(breaks = seq(-20, 30, by=10))+
+  theme( panel.grid.major = element_blank(),  
+    panel.grid.minor = element_blank(),
+    strip.background = element_blank(), 
+    axis.title = element_text(size=13),
+    axis.title.x = element_text(vjust = -0.2), 
+    axis.title.y = element_text(vjust = 1.5),
+    axis.text = element_text(size=10), 
+    legend.text = element_text(size=10), 
+    legend.title = element_text(size=12), 
+    legend.margin = margin(b= 20),
+    plot.margin = margin(t=25, r=25, l=25, b=25))+
+  geom_boxplot(data = mk_swordfish, aes(x = standardised.K, y= -25),width = 1.5, inherit.aes = FALSE) + 
+  geom_rug(data = mk_swordfish, aes(x = standardised.K, y = -15), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+
+swordfish_baselineplotk
+
+plot_path <- file.path(paste(project_dir, "03_results", "main_plots", sep = "/"))
+
+ggsave("swordfish_change_mean_baselinek_Linfk20.png",
+       plot = swordfish_baselineplotk, 
+       path = plot_path, 
+       width = 20, height = 15, units = "cm")
+```
+
+```{r swordfish baseline linf20 change in mean truncated increasing k}
+cbPalette <- c("#CC79A7", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00","#000000" )
+truncatedk_comp <- rbind(swordfish_alldatak, swordfish_alldata25k, swordfish_alldata66k)
+
+truncatedk_comp20 <- truncatedk_comp %>%
+  filter(scenario!="baseline") %>% 
+  filter(data.ID=="baseline"|data.ID=="Linf") %>% 
+  filter(Linf==146.528|Linf==183.16) %>% 
+  mutate(run.name = case_when(
+    run.name == "full dist" ~ "Full distribution",
+    run.name == "sdist truncated 25%" ~ "Truncated 25%",
+    run.name == "sdist truncated 66%" ~ "Truncated 66%",
+    TRUE ~ as.character(run.name)))
+
+truncatedk_comp20$run.name <- factor(truncatedk_comp20$run.name, levels = c("Full distribution", "Truncated 25%","Truncated 66%"), ordered = TRUE)
+
+truncatedk_comp20$data.ID <- factor(truncatedk_comp20$data.ID , levels = c("baseline", "Linf"), ordered = TRUE)
+
+swordfishk_truncated_compare <- ggplot(data = truncatedk_comp20, aes(x = K, y = change.mean.percent, colour = run.name, shape = data.ID)) +
+  geom_vline(xintercept = 0.391, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point(size = 1) +
+  labs(x = "Growth (K)", y = expression("% change mean length from initial scenario"), colour = expression("Size distribution"), shape="Scenario") +
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19), 
+                     labels = c("baseline"=expression("No change in L"[inf]), 
+                                "Linf"=expression("20% decline in L"[inf])))+
+  scale_color_manual(values = cbPalette)+
+  scale_y_continuous(breaks = seq(-20, 30, by=10))+
+  theme(panel.grid.major = element_blank(),  
+    panel.grid.minor = element_blank(),
+    axis.title = element_text(size=13),
+    axis.title.x = element_text(vjust = -0.2), 
+    axis.title.y = element_text(vjust = 1.5),
+    axis.text = element_text(size=10), 
+    legend.text = element_text(size=10), 
+    legend.title = element_text(size=12), 
+    plot.margin = margin(t=25, r=25, l=25, b=25))+
+  geom_boxplot(data = mk_swordfish, aes(x = standardised.K, y= -25),width = 1.5, inherit.aes = FALSE) + 
+  geom_rug(data = mk_swordfish, aes(x = standardised.K, y = -15), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+
+swordfishk_truncated_compare
+
+plot_path <- file.path(paste(project_dir, "03_results", "main_plots", sep = "/"))
+
+ggsave("swordfish_change_mean_baselinek_Linfk20_truncated_comparison.png",
+       plot = swordfishk_truncated_compare, 
+       path = plot_path, 
+       width = 20, height = 15, units = "cm")
+
+
+
+```
+
+#MOONWRASSE
+## moonwrasse set up data
+
+```{r moonwrasse load all data}
+#rm(list=ls()) # clear workspace
+project_dir <- here::here()
+
+raw_data <- file.path(paste(project_dir, "0_data", "Prince_2023_MK_precise.csv", sep = "/"))
+mk <- read_csv(raw_data) #read in raw data
+
+mk_moonwrasse <- mk %>% filter(species == "Thalassoma lunare")
+summary(mk_moonwrasse)
+
+#baseline - step 1
+baselinefull_moonwrasse <- file.path(paste(project_dir, 
+                                         "03_results", 
+                                         "output1", 
+                                         "08_sim_output_baseline_moonwrasse_fulldist.csv", sep = "/"))
+moonwrasse_baselinefull <- read_csv(baselinefull_moonwrasse)
+moonwrasse_baselinefull$Linf <- factor(moonwrasse_baselinefull$Linf) # make Linf discrete
+
+#increasing k
+baselinek_moonwrasse <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output1", 
+                                         "08_sim_output_baselinek_moonwrasse_fulldist.csv", sep = "/"))
+moonwrasse_baselinek <- read_csv(baselinek_moonwrasse)
+moonwrasse_baselinek$Linf <- factor(moonwrasse_baselinek$Linf) # make Linf discrete
+
+
+#truncated 25%
+baseline25_moonwrasse <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output1", 
+                                         "08_sim_output_baseline_moonwrasse_25dist.csv", sep = "/"))
+moonwrasse_baseline25 <- read_csv(baseline25_moonwrasse)
+moonwrasse_baseline25$Linf <- factor(moonwrasse_baseline25$Linf) # make Linf discrete
+
+baseline25k_moonwrasse <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output1", 
+                                         "08_sim_output_baselinek_moonwrasse_25dist.csv", sep = "/"))
+moonwrasse_baseline25k <- read_csv(baseline25k_moonwrasse)
+moonwrasse_baseline25k$Linf <- factor(moonwrasse_baseline25k$Linf) # make Linf discrete
+
+#truncated 66%
+baseline66_moonwrasse <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output1", 
+                                         "08_sim_output_baseline_moonwrasse_66dist.csv", sep = "/"))
+moonwrasse_baseline66 <- read_csv(baseline66_moonwrasse)
+moonwrasse_baseline66$Linf <- factor(moonwrasse_baseline66$Linf) # make Linf discrete
+
+baseline66k_moonwrasse <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output1", 
+                                         "08_sim_output_baselinek_moonwrasse_66dist.csv", sep = "/"))
+moonwrasse_baseline66k <- read_csv(baseline66k_moonwrasse)
+moonwrasse_baseline66k$Linf <- factor(moonwrasse_baseline66k$Linf) # make Linf discrete
+
+# linf decrease - step 2
+Linffull_moonwrasse <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linf_moonwrasse_fulldist.csv", sep = "/"))
+moonwrasse_Linffull <- read_csv(Linffull_moonwrasse)
+moonwrasse_Linffull$Linf <- factor(moonwrasse_Linffull$Linf) # make Linf discrete
+
+#increasing k
+Linfk_moonwrasse <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linfk_moonwrasse_fulldist.csv", sep = "/"))
+moonwrasse_Linfk <- read_csv(Linfk_moonwrasse)
+moonwrasse_Linfk$Linf <- factor(moonwrasse_Linfk$Linf) # make Linfk discrete
+
+
+#truncated 25
+Linf25_moonwrasse <- file.path(paste(project_dir, 
+                                        "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linf_moonwrasse_25dist.csv", sep = "/"))
+moonwrasse_Linf25 <- read_csv(Linf25_moonwrasse)
+moonwrasse_Linf25$Linf <- factor(moonwrasse_Linf25$Linf) # make Linf25 discrete
+
+Linf25k_moonwrasse <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linfk_moonwrasse_25dist.csv", sep = "/"))
+moonwrasse_Linf25k <- read_csv(Linf25k_moonwrasse)
+moonwrasse_Linf25k$Linf <- factor(moonwrasse_Linf25k$Linf) # make Linfk discrete
+
+#truncated 66
+Linf66_moonwrasse <- file.path(paste(project_dir, 
+                                         "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linf_moonwrasse_66dist.csv", sep = "/"))
+moonwrasse_Linf66 <- read_csv(Linf66_moonwrasse)
+moonwrasse_Linf66$Linf <- factor(moonwrasse_Linf66$Linf) # make Linf66 discrete
+
+Linf66k_moonwrasse <- file.path(paste(project_dir, 
+                                        "03_results",
+                                         "output2", 
+                                         "08_sim_output_Linfk_moonwrasse_66dist.csv", sep = "/"))
+moonwrasse_Linf66k <- read_csv(Linf66k_moonwrasse)
+moonwrasse_Linf66k$Linf <- factor(moonwrasse_Linf66k$Linf) # make Linfk discrete
+
+
+```
+
+```{r moonwrasse combine data}
+moonwrasse_baselinefull <- moonwrasse_baselinefull %>% mutate(data.ID = "baseline")
+moonwrasse_baseline25 <- moonwrasse_baseline25 %>% mutate(data.ID = "baseline")
+moonwrasse_baseline66 <- moonwrasse_baseline66 %>% mutate(data.ID = "baseline")
+moonwrasse_Linffull <- moonwrasse_Linffull %>% mutate(data.ID = "Linf") 
+moonwrasse_Linf25 <- moonwrasse_Linf25 %>% mutate(data.ID = "Linf") 
+moonwrasse_Linf66 <- moonwrasse_Linf66 %>% mutate(data.ID = "Linf") 
+moonwrasse_baselinek <- moonwrasse_baselinek %>% mutate(data.ID = "baseline")
+moonwrasse_baseline25k <- moonwrasse_baseline25k %>% mutate(data.ID = "baseline")
+moonwrasse_baseline66k <- moonwrasse_baseline66k %>% mutate(data.ID = "baseline")
+moonwrasse_Linfk <- moonwrasse_Linfk %>% mutate(data.ID = "Linf") 
+moonwrasse_Linf25k <- moonwrasse_Linf25k %>% mutate(data.ID = "Linf")
+moonwrasse_Linf66k <- moonwrasse_Linf66k %>% mutate(data.ID = "Linf")
+
+moonwrasse_alldatafull <- rbind(moonwrasse_baselinefull, moonwrasse_Linffull)
+moonwrasse_alldatak <- rbind(moonwrasse_baselinek, moonwrasse_Linfk)
+moonwrasse_alldata25k <- rbind(moonwrasse_baseline25k, moonwrasse_Linf25k)
+moonwrasse_alldata66k <- rbind(moonwrasse_baseline66k, moonwrasse_Linf66k)
+moonwrasse_alldata25 <- rbind(moonwrasse_baseline25, moonwrasse_Linf25)
+moonwrasse_alldata66 <- rbind(moonwrasse_baseline66, moonwrasse_Linf66)
+
+moonwrasse_alldatafull$data.ID <- factor(moonwrasse_alldatafull$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+moonwrasse_alldatak$data.ID <- factor(moonwrasse_alldatak$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+moonwrasse_alldata25k$data.ID <- factor(moonwrasse_alldata25k$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+moonwrasse_alldata66k$data.ID <- factor(moonwrasse_alldata66k$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+moonwrasse_alldata25$data.ID <- factor(moonwrasse_alldata25$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+moonwrasse_alldata66$data.ID <- factor(moonwrasse_alldata66$data.ID, ordered = TRUE, levels = c("baseline", "Linf"))
+
+
+```
+
+## moonwrasse plots
+
+```{r moonwrasse baseline linf20 change in mean data}
+## baseline change in mean 
+moonwrasse_plotdata20 <- moonwrasse_alldatafull %>% 
+  filter(data.ID=="baseline"|data.ID=="Linf") %>% 
+  filter(Linf==	11.28|Linf==14.1)
+
+moonwrasse_plotdata20$data.ID <- factor(moonwrasse_plotdata20$data.ID , levels = c("baseline", "Linf"), ordered = TRUE)
+
+```
+
+```{r 1 PANEL moonwrasse baseline linf20 change in mean}
+#M/k plot
+moonwrasse_baselineplot <- ggplot(data = moonwrasse_plotdata20, aes(x = Mk.ratio, y = change.mean.percent, colour = change.max.percent, shape= data.ID)) +
+  geom_vline(xintercept = 1.345, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(x = "M/K (mortality/growth) ratio", y = expression("% change in mean length from initial scenario"), colour = expression("% change in \nmaximum length \nfrom initial scenario"), shape = "Scenario") +
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19), 
+                     labels = c("baseline"=expression("No change in L"[inf]), 
+                                "Linf"=expression("20% decline in L"[inf])))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8)+
+  scale_y_continuous(breaks = seq(-65, 60, by=20)) +
+  theme(panel.grid.major = element_blank(),  
+    panel.grid.minor = element_blank(), 
+    axis.title = element_text(size=13),
+    axis.title.x = element_text(vjust = -0.2), 
+    axis.title.y = element_text(vjust = 1.5),
+    axis.text = element_text(size=10), 
+    legend.text = element_text(size=10), 
+    legend.title = element_text(size=12), 
+    legend.margin = margin(b= 20),
+    plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_moonwrasse, aes(x = standardised.M.K, y= -66),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_moonwrasse, aes(x = standardised.M.K, y = -70), sides = "b", inherit.aes = FALSE, linewidth=0.5)  
+
+moonwrasse_baselineplot
+
+#save plot 
+plot_path <- file.path(paste(project_dir, "03_results", "main_plots", sep = "/"))
+ggsave("moonwrasse_change_mean_baseline_linf20_fulldist.png",
+       plot = moonwrasse_baselineplot, 
+       path = plot_path, 
+       width = 20, height = 15, units = "cm")
+
+#mortality plot
+mk_moonwrasse_M <- filter(mk_moonwrasse,Hoenig.M<1)#remove outliers for plotting
+
+moonwrasse_baselineplot_M <- ggplot(data = moonwrasse_plotdata20, aes(x = M, y = change.mean.percent, colour = change.max.percent, shape = data.ID)) +
+  geom_vline(xintercept = 0.726, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(x = "Mortality (M)", y = expression("% change in mean length from initial scenario"), colour = expression("% change in \nmaximum length \nfrom initial scenario"), shape = "Scenario") +
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19), 
+                     labels = c("baseline"=expression("No change in L"[inf]), 
+                                "Linf"=expression("20% decline in L"[inf])))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8)+
+  scale_y_continuous(breaks = seq(-70, 60, by=20)) +
+  theme(panel.grid.major = element_blank(),  
+    panel.grid.minor = element_blank(), 
+    axis.title = element_text(size=13),
+    axis.title.x = element_text(vjust = -0.2), 
+    axis.title.y = element_text(vjust = 1.5),
+    axis.text = element_text(size=10), 
+    legend.text = element_text(size=10), 
+    legend.title = element_text(size=12),
+    legend.margin = margin(b= 20),
+    plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_moonwrasse_M, aes(x = Hoenig.M, y= -75),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_moonwrasse_M, aes(x = Hoenig.M, y = -43), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+
+moonwrasse_baselineplot_M
+
+plot_path <- file.path(paste(project_dir, "03_results", "main_plots", sep = "/"))
+
+ggsave("moonwrasse_change_mean_baseline_linf20_M_fulldist.png",
+       plot = moonwrasse_baselineplot_M, 
+       path = plot_path, 
+       width = 20, height = 15, units = "cm")
+
+moonwrasse_baselineplot_K <- ggplot(data = moonwrasse_plotdata20, aes(x = K, y = change.mean.percent, colour = change.max.percent, shape = data.ID)) +
+  geom_vline(xintercept = 0.540, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(x = "Growth (K)", y = expression("% change in mean length from initial scenario"), colour = expression("% change in \nmaximum length \nfrom initial scenario"), shape = "Scenario") +
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19), 
+                     labels = c("baseline"=expression("No change in L"[inf]), 
+                                "Linf"=expression("20% decline in L"[inf])))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8)+
+  scale_y_continuous(breaks = seq(-70, 60, by=20)) +
+  theme(panel.grid.major = element_blank(),  
+    panel.grid.minor = element_blank(),
+    axis.title = element_text(size=13),
+    axis.title.x = element_text(vjust = -0.2), 
+    axis.title.y = element_text(vjust = 1.5),
+    axis.text = element_text(size=10), 
+    legend.text = element_text(size=10), 
+    legend.title = element_text(size=12),
+    legend.margin = margin(b= 20),
+    plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_moonwrasse, aes(x = standardised.K, y= -75),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_moonwrasse, aes(x = standardised.K, y = -43), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+
+moonwrasse_baselineplot_K
+
+plot_path <- file.path(paste(project_dir, "03_results", "main_plots", sep = "/"))
+
+ggsave("moonwrasse_change_mean_baseline_linf20_K_fulldist.png",
+       plot = moonwrasse_baselineplot_K, 
+       path = plot_path, 
+       width = 20, height = 15, units = "cm")
+
+# 2 panel plot
+panel <- (moonwrasse_baselineplot_M+moonwrasse_baselineplot_K)+ 
+  plot_layout(ncol = 2, guides = "collect")+
+  plot_annotation(tag_levels = "a", tag_prefix = "(", tag_suffix = ")") & theme(plot.tag.position = c(0.04, 1.02))
+panel
+
+ggsave("moonwrasse_change_mean_baseline_linf20_MKpanel_fulldist.png",
+       plot = panel, 
+       path = plot_path, 
+       width = 30, height = 14, units = "cm")
+
+
+```
+
+```{r moonwrasse baseline linf20 truncated 25 change in mean data}
+## baseline change in mean 
+moonwrasse25_plotdata20 <- moonwrasse_alldata25 %>% 
+  filter(data.ID=="baseline"|data.ID=="Linf") %>% 
+  filter(Linf==	11.28|Linf==14.1)
+
+moonwrasse25_plotdata20$data.ID <- factor(moonwrasse25_plotdata20$data.ID , levels = c("baseline", "Linf"), ordered = TRUE)
+
+```
+
+```{r 1 PANEL moonwrasse baseline linf20 truncated 25 change in mean}
+#M/k plot
+moonwrasse_baselineplot_truncated25 <- ggplot(data = moonwrasse25_plotdata20, aes(x = Mk.ratio, y = change.mean.percent, colour = change.max.percent, shape= data.ID)) +
+  geom_vline(xintercept = 1.345, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(x = "M/K (mortality/growth) ratio", y = expression("% change in mean length from initial scenario"), colour = expression("% change in \nmaximum length \nfrom initial scenario"), shape = "Scenario") +
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19), 
+                     labels = c("baseline"=expression("No change in L"[inf]), 
+                                "Linf"=expression("20% decline in L"[inf])))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8)+
+  scale_y_continuous(breaks = seq(-40, 60, by=20)) +
+  theme(panel.grid.major = element_blank(),  
+    panel.grid.minor = element_blank(), 
+    axis.title = element_text(size=13),
+    axis.title.x = element_text(vjust = -0.2), 
+    axis.title.y = element_text(vjust = 1.5),
+    axis.text = element_text(size=10), 
+    legend.text = element_text(size=10), 
+    legend.title = element_text(size=12), 
+    legend.margin = margin(b= 20),
+    plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_moonwrasse, aes(x = standardised.M.K, y= -47),width = 2, inherit.aes = FALSE) + 
+  geom_rug(data = mk_moonwrasse, aes(x = standardised.M.K, y = -43), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+moonwrasse_baselineplot_truncated25
+
+plot_path <- file.path(paste(project_dir, "03_results", "main_plots", sep = "/"))
+
+ggsave("moonwrasse_change_mean_baseline_linf20_25dist.png",
+       plot = moonwrasse_baselineplot_truncated25, 
+       path = plot_path, 
+       width = 20, height = 15, units = "cm")
+```
+
+```{r moonwrasse baseline linf20 truncated 66 change in mean data}
+## baseline change in mean 
+moonwrasse66_plotdata20 <- moonwrasse_alldata66 %>% 
+  filter(data.ID=="baseline"|data.ID=="Linf") %>% 
+  filter(Linf==	11.28|Linf==14.1)
+
+moonwrasse66_plotdata20$data.ID <- factor(moonwrasse66_plotdata20$data.ID , levels = c("baseline", "Linf"), ordered = TRUE)
+
+```
+
+```{r 1 PANEL moonwrasse baseline linf20 truncated 66 change in mean}
+#M/k plot
+moonwrasse_baselineplot_truncated66 <- ggplot(data = moonwrasse66_plotdata20, aes(x = Mk.ratio, y = change.mean.percent, colour = change.max.percent, shape= data.ID)) +
+  geom_vline(xintercept = 1.345, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(x = "M/K (mortality/growth) ratio", y = expression("% change in mean length from initial scenario"), colour = expression("% change in \nmaximum length \nfrom initial scenario"), shape = "Scenario") +
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19), 
+                     labels = c("baseline"=expression("No change in L"[inf]), 
+                                "Linf"=expression("20% decline in L"[inf])))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8)+
+  scale_y_continuous(breaks = seq(-30, 60, by=10)) +
+  theme(panel.grid.major = element_blank(),  
+    panel.grid.minor = element_blank(), 
+    axis.title = element_text(size=13),
+    axis.title.x = element_text(vjust = -0.2), 
+    axis.title.y = element_text(vjust = 1.5),
+    axis.text = element_text(size=10), 
+    legend.text = element_text(size=10), 
+    legend.title = element_text(size=12), 
+    legend.margin = margin(b= 20),
+    plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_moonwrasse, aes(x = standardised.M.K, y= -36),width = 1, inherit.aes = FALSE) + 
+  geom_rug(data = mk_moonwrasse, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+moonwrasse_baselineplot_truncated66
+
+plot_path <- file.path(paste(project_dir, "03_results", "main_plots", sep = "/"))
+
+ggsave("moonwrasse_change_mean_baseline_linf20_66dist.png",
+       plot = moonwrasse_baselineplot_truncated66, 
+       path = plot_path, 
+       width = 20, height = 15, units = "cm")
+```
+
+
+```{r moonwrasse baseline linf20 truncated facet}
+moonwrasse_truncated_facet_data <- rbind(moonwrasse_plotdata20, moonwrasse25_plotdata20, moonwrasse66_plotdata20)
+
+moonwrasse_truncated_facet_data <- moonwrasse_truncated_facet_data %>%
+  mutate(run.name = case_when(
+    run.name == "full dist" ~ "Full distribution",
+    run.name == "sdist truncated 25%" ~ "25% truncated distribution",
+    run.name == "sdist truncated 66%" ~ "66% truncated distribution",
+    TRUE ~ as.character(data.ID)))
+moonwrasse_truncated_facet_data$run.name <- factor(moonwrasse_truncated_facet_data$run.name , 
+                                         levels = c("Full distribution", "25% truncated distribution","66% truncated distribution"),
+                                         ordered = TRUE)
+
+moonwrasse_truncated_facet_plot <- ggplot(data = moonwrasse_truncated_facet_data, aes(x = Mk.ratio, y = change.mean.percent, colour = change.max.percent, shape= data.ID)) +
+  geom_vline(xintercept = 1.34, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(x = "M/K (mortality/growth) ratio", y = expression("% change in mean length from initial scenario"), colour = expression("% change in \nmaximum length \nfrom initial scenario"), shape = "Scenario") +
+  theme_classic() +
+  facet_wrap(.~ run.name, ncol=3)+
+  scale_shape_manual(values = c(3, 19), 
+                     labels = c("baseline"=expression("No change in L"[inf]), 
+                                "Linf"=expression("20% decline in L"[inf])))+
+  scale_color_continuous_diverging(palette = "blue-red", l1=30, l2=80, p1=0.1, p2=0.8)+
+  scale_y_continuous(limits = c(-70, 55), breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8), 
+        strip.background = element_blank(),
+        panel.grid.major = element_blank(),  
+        panel.grid.minor = element_blank(), 
+        axis.title = element_text(size=13),
+        axis.title.x = element_text(vjust = -0.2), 
+        axis.title.y = element_text(vjust = 1.5),
+        axis.text = element_text(size=10), 
+        legend.text = element_text(size=10), 
+        legend.title = element_text(size=12), 
+        legend.margin = margin(b= 20),
+        plot.margin = margin(t=25, r=25, l=25, b=25))+
+  guides(color = guide_colorbar(barheight = 10))+
+  geom_boxplot(data = mk_moonwrasse, aes(x = standardised.M.K, y= -68),width = 3, inherit.aes = FALSE) + 
+  geom_rug(data = mk_moonwrasse, aes(x = standardised.M.K, y = -22), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+moonwrasse_truncated_facet_plot
+
+plot_path <- file.path(paste(project_dir, "03_results", "main_plots", sep = "/"))
+
+ggsave("moonwrasse_change_mean_baseline_linf20_moonwrasse_truncated_facet.png",
+       plot = moonwrasse_truncated_facet_plot, 
+       path = plot_path, 
+       width = 35, height = 15, units = "cm")
+
+```
+
+```{r moonwrasse baseline linf20 truncated comparison}
+cbPalette <- c("#CC79A7", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00","#000000" )
+
+truncated_comp <- rbind(moonwrasse_plotdata20, moonwrasse25_plotdata20, moonwrasse66_plotdata20)
+
+truncated_comp <- truncated_comp %>%
+  mutate(run.name = case_when(
+    run.name == "full dist" ~ "Full distribution",
+     run.name == "sdist truncated 25%" ~ "Truncated 25%",
+    run.name == "sdist truncated 66%" ~ "Truncated 66%",
+    TRUE ~ as.character(run.name)))
+
+truncated_comp$run.name <- factor(truncated_comp$run.name, levels = c("Full distribution", "Truncated 25%","Truncated 66%"), ordered = TRUE)
+
+moonwrasse_truncated_compare <- ggplot(data = truncated_comp, aes(x = Mk.ratio, y = change.mean.percent, colour = run.name)) +
+  geom_vline(xintercept = 1.345, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point(size=1) +
+  labs(x = "M/K (mortality/growth) ratio", y = expression("% change in mean length from initial scenario"), colour = expression("Size distribution")) +
+  theme_classic() +
+  scale_color_manual(values = cbPalette)+
+  facet_wrap(.~data.ID)+
+  rotate_x_facet_text(align = 0.5, angle = 0)+
+  scale_y_continuous(limits = c(-75, 55), breaks = seq(-70, 60, by=20)) +
+  theme(strip.text = element_text(size = 10, face = "bold", vjust = 0.8), 
+    panel.grid.major = element_blank(),  
+    panel.grid.minor = element_blank(),
+    strip.background = element_blank(),
+    axis.title = element_text(size=13),
+    axis.title.x = element_text(vjust = -0.2), 
+    axis.title.y = element_text(vjust = 1.5),
+    axis.text = element_text(size=10), 
+    legend.text = element_text(size=10), 
+    legend.title = element_text(size=12), 
+   legend.margin = margin(b= 20),
+    plot.margin = margin(t=25, r=25, l=25, b=25))+
+  geom_boxplot(data = mk_moonwrasse, aes(x = standardised.M.K, y= -70),width = 2.5, inherit.aes = FALSE) + 
+  geom_rug(data = mk_moonwrasse, aes(x = standardised.M.K, y = -43), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+
+moonwrasse_truncated_compare
+
+plot_path <- file.path(paste(project_dir, "03_results", "main_plots", sep = "/"))
+
+ggsave("moonwrasse_change_mean_baseline_linf20_truncated_comparison.png",
+       plot = moonwrasse_truncated_compare, 
+       path = plot_path, 
+       width = 25, height = 15, units = "cm")
+
+```
+
+```{r 1 PANEL moonwrasse baseline linf20 change in mean increasing k}
+## baseline change in mean 
+moonwrasse_plotdata20k <- moonwrasse_alldatak %>% 
+  filter(scenario!="baseline" ) %>% 
+  filter(data.ID=="baseline"|data.ID=="Linf") %>% 
+  filter(Linf==	11.28|Linf==14.1)
+
+moonwrasse_plotdata20k$data.ID <- factor(moonwrasse_plotdata20k$data.ID , levels = c("baseline", "Linf"), ordered = TRUE)
+
+moonwrasse_baselineplotk <- ggplot(data = moonwrasse_plotdata20k, aes(x = K, y = change.mean.percent, size = Mk.ratio, colour = data.ID)) +
+  geom_vline(xintercept = 0.540, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point() +
+  labs(x = "Growth (K)", y = expression("% change in mean length from initial scenario"), size = expression("M/K ratio"), colour="Scenario") +
+  theme_classic() +
+  scale_colour_manual(values = c("#CC79A7", "#56B4E9"), 
+                     labels = c("baseline"=expression("No change in L"[inf]), 
+                                "Linf"=expression("20% decline in L"[inf])))+
+  scale_y_continuous(breaks = seq(-20, 40, by=10))+
+  theme( panel.grid.major = element_blank(),  
+    panel.grid.minor = element_blank(),
+    strip.background = element_blank(), 
+    axis.title = element_text(size=13),
+    axis.title.x = element_text(vjust = -0.2), 
+    axis.title.y = element_text(vjust = 1.5),
+    axis.text = element_text(size=10), 
+    legend.text = element_text(size=10), 
+    legend.title = element_text(size=12), 
+    legend.margin = margin(b= 20),
+    plot.margin = margin(t=25, r=25, l=25, b=25))+
+  geom_boxplot(data = mk_moonwrasse, aes(x = standardised.K, y= -25),width = 1, inherit.aes = FALSE) + 
+  geom_rug(data = mk_moonwrasse, aes(x = standardised.K, y = -15), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+moonwrasse_baselineplotk
+
+plot_path <- file.path(paste(project_dir, "03_results", "main_plots",sep = "/"))
+
+ggsave("moonwrasse_change_mean_baselinek_Linfk20.png",
+       plot = moonwrasse_baselineplotk, 
+       path = plot_path, 
+       width = 20, height = 15, units = "cm")
+```
+
+```{r moonwrasse baseline linf20 change in mean truncated increasing k}
+cbPalette <- c("#CC79A7", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00","#000000" )
+truncatedk_comp <- rbind(moonwrasse_alldatak, moonwrasse_alldata25k, moonwrasse_alldata66k)
+
+truncatedk_comp20 <- truncatedk_comp %>%
+  filter(scenario!="baseline") %>% 
+  filter(data.ID=="baseline"|data.ID=="Linf") %>% 
+  filter(Linf==	11.28|Linf==14.1) %>% 
+  mutate(run.name = case_when(
+    run.name == "full dist" ~ "Full distribution",
+    run.name == "sdist truncated 25%" ~ "Truncated 25%",
+    run.name == "sdist truncated 66%" ~ "Truncated 66%",
+    TRUE ~ as.character(run.name)))
+
+truncatedk_comp20$run.name <- factor(truncatedk_comp20$run.name, levels = c("Full distribution", "Truncated 25%","Truncated 66%"), ordered = TRUE)
+
+truncatedk_comp20$data.ID <- factor(truncatedk_comp20$data.ID , levels = c("baseline", "Linf"), ordered = TRUE)
+
+
+moonwrassek_truncated_compare <- ggplot(data = truncatedk_comp20, aes(x = K, y = change.mean.percent, colour = run.name, shape = data.ID)) +
+  geom_vline(xintercept = 0.540, linetype = "dotted", linewidth=0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth=0.5) +
+  geom_point(size = 1) +
+  labs(x = "Growth (K)", y = expression("% change mean length from initial scenario"), colour = expression("Size distribution"), shape="Scenario") +
+  theme_classic() +
+  scale_shape_manual(values = c(3, 19), 
+                     labels = c("baseline"=expression("No change in L"[inf]), 
+                                "Linf"=expression("20% decline in L"[inf])))+
+  scale_color_manual(values = cbPalette)+
+  scale_y_continuous(breaks = seq(-30, 40, by=10))+
+  theme(panel.grid.major = element_blank(),  
+    panel.grid.minor = element_blank(),
+    axis.title = element_text(size=13),
+    axis.title.x = element_text(vjust = -0.2), 
+    axis.title.y = element_text(vjust = 1.5),
+    axis.text = element_text(size=10), 
+    legend.text = element_text(size=10), 
+    legend.title = element_text(size=12), 
+    plot.margin = margin(t=25, r=25, l=25, b=25))+
+  geom_boxplot(data = mk_moonwrasse, aes(x = standardised.K, y= -30),width = 2, inherit.aes = FALSE) + 
+  geom_rug(data = mk_moonwrasse, aes(x = standardised.K, y = -15), sides = "b", inherit.aes = FALSE, linewidth=0.5) 
+
+
+moonwrassek_truncated_compare
+
+plot_path <- file.path(paste(project_dir, "03_results", "main_plots", sep = "/"))
+
+ggsave("moonwrasse_change_mean_baselinek_Linfk20_truncated_comparison.png",
+       plot = moonwrassek_truncated_compare, 
+       path = plot_path, 
+       width = 20, height = 15, units = "cm")
+
+
+
+```
+
