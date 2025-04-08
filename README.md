@@ -14,7 +14,7 @@ Run code in the order the scripts are numbered, as earlier scripts produce data 
 Prince et al. (2023) data found at https://doi.org/10.1093/icesjms/fsad026 in the Supplementary material
 
 
-Please do not use/publish before this paper is published. 
+Please do not use/publish this code before this paper is published. 
 
 
 ### Reference
